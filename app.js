@@ -1,23 +1,58 @@
-//  REQUIRE MODULES
+// =====================================
+// 1)  REQUIRE MODULES
+// =====================================
 const fs = require('fs');
 const express = require('express');
+const morgan = require('morgan');
 
 // common practice to create a variable called "app" that is set to the newly requirec express
 const app = express();  
 
+
+// =====================================
+// 2) MIDDLEWARE
+// =====================================
 // MIDDLEWARE - function that can modifer the incoming request data (stands between the request and the response)
+// "app.use([function])"
+
+// 3rd party middleware
+app.use(morgan('dev'));
 app.use(express.json());
+
+// here is the standard format for your own middleware:
+// without specifying a specific route, this will be applied to every single route that you have
+// the order of routes/middleware in your code MATTERS, middleware must come before the route handlers
+// can have as many middleware functions as you like
+app.use((req, res, next) => {
+  console.log('Hello from the middleware!');
+  // must call the 'next' function at the end of your middleware
+  next();
+});
+
+// in this middleware example, we need to know exactly what time the request happened
+// we create a 'requestTime' variable inside the request and set it to the current time
+app.use((req, res, next) => {
+  // '.toISOString' will convert the date to a string
+  req.requestTime = new Date().toISOString();
+  // don't forget to call the 'next' function!
+  next();
+  // check the 'getAllTours' function below to see how we utilize this 'requestTime' variable inside of the GET REQUEST
+});
 
 // save the data we want into a variable in a synchronous way (since it does not matter in top-level code)
 // we will parse this data into a JSON file right away
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`));
 
-// FUNCTION: GET ALL TOURS
+// =====================================
+// 3) ROUTE HANDLERS
+// =====================================
 const getAllTours = (req,res) => {
+  console.log(req.requestTime); // comes from the 'middleware'
   // useful to list the 'status' even if its not needed
   // we will be using the 'JSend' response format with 'enveloping':
   res.status(200).json({
     status: 'success',
+    requestedAt: req.requestTime, // comes from the middleware
     // the "results" response is handy when a response contains arrays or multiple objects, but is not
     // part of the RESTFUL API common practices, just useful for us :)
     results: tours.length,
@@ -31,7 +66,6 @@ const getAllTours = (req,res) => {
   })
 };
 
-// FUNCTION: GET TOUR BY ID
 const getTour = (req,res) => {
   // variables in the URL are called 'parameters', and they are stored inside 'req.params'
   console.log(req.params);  // { id: '5' } - this is an object
@@ -63,7 +97,6 @@ const getTour = (req,res) => {
   })
 }
 
-// FUNCTION: CREATE TOUR
 const createTour = (req, res) => {
   // we do 'req.body' because body is the property that is going to be available on the request...
   // console.log(req.body);
@@ -96,7 +129,6 @@ const createTour = (req, res) => {
   // res.send("Done");
 };
 
-// FUNCTION: UPDATE TOUR
 const updateTour = (req, res) => {
   // invalid ID search handling
   if ((req.params.id * 1) > tours.length) {
@@ -121,7 +153,6 @@ const updateTour = (req, res) => {
   })
 };
 
-// FUNCTION: DELETE TOUR
 const deleteTour = (req, res) => {
   if ((req.params.id * 1) > tours.length) {
     return res.status(404).json({
@@ -138,14 +169,20 @@ const deleteTour = (req, res) => {
   });
 };
 
-// ALL ROUTES
+// =====================================
+// 4) ROUTES
+// =====================================
+// each route individually (OLD WAY)
+// ----------------------------------------
 // app.get('/api/v1/tours', getAllTours);
 // notice the ':id' at the end of the url, that syntax will check for a variable, in this case, the var "id"
 // app.get('/api/v1/tours/:id', getTour);
 // app.post('/api/v1/tours', createTour);
 // app.patch('/api/v1/tours/:id', updateTour);
 // app.delete('/api/v1/tours/:id', deleteTour);
-
+// ---------------------------------------------
+// routes chained together (NEW WAY)
+// ----------------------------------------
 app
   .route('/api/v1/tours')
   .get(getAllTours)
@@ -157,8 +194,9 @@ app
   .patch(updateTour)
   .delete(deleteTour);
 
-// SET LISTENING HANDLER
-// -----------------------------------------
+// =====================================
+// 5) START SERVER
+// =====================================
 // create a variable for the port
 const port = 3000;
 
