@@ -1,11 +1,14 @@
 // =====================================
 // 1)  REQUIRE MODULES
 // =====================================
-const fs = require('fs');
 const express = require('express');
 const morgan = require('morgan');
 
-// common practice to create a variable called "app" that is set to the newly requirec express
+// require the routers from the routes folder
+const tourRouter = require('./routes/tourRoutes');
+const userRouter = require('./routes/userRoutes');
+
+// common practice is to create a variable called "app" that is set to the newly required express
 const app = express();  
 
 
@@ -16,8 +19,13 @@ const app = express();
 // "app.use([function])"
 
 // 3rd party middleware
-app.use(morgan('dev'));
+console.log(process.env.NODE_ENV);  // environment variables accessed via 'process.env'
+if (process.env.NODE_ENV != 'production') {
+  app.use(morgan('dev'));
+}
 app.use(express.json());
+app.use(express.static(`${__dirname}/public`)); // this is a built-in express module we can call in order to view
+// static files in the browser. in this case, we want to 'serve' files in the 'public' folder to the browser
 
 // here is the standard format for your own middleware:
 // without specifying a specific route, this will be applied to every single route that you have
@@ -39,135 +47,14 @@ app.use((req, res, next) => {
   // check the 'getAllTours' function below to see how we utilize this 'requestTime' variable inside of the GET REQUEST
 });
 
-// save the data we want into a variable in a synchronous way (since it does not matter in top-level code)
-// we will parse this data into a JSON file right away
-const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`));
+
 
 // =====================================
-// 3) ROUTE HANDLERS
+// 3) ROUTE HANDLERS (WE NOW CALL THEM 'CONTROLLERS')
 // =====================================
-const getAllTours = (req,res) => {
-  console.log(req.requestTime); // comes from the 'middleware'
-  // useful to list the 'status' even if its not needed
-  // we will be using the 'JSend' response format with 'enveloping':
-  res.status(200).json({
-    status: 'success',
-    requestedAt: req.requestTime, // comes from the middleware
-    // the "results" response is handy when a response contains arrays or multiple objects, but is not
-    // part of the RESTFUL API common practices, just useful for us :)
-    results: tours.length,
-    data: {
-      // in ES6, we do not need to specify the key and value if they have the same name. you can simply just write:
-      // "tours" below, instead of "tours: tours".
-      tours: tours
-      // if we saved the JSON data above into a variable called "x" instead of "tours", we would have to write out:
-      // "tours: x", because enveloping name we want is different from the variable with the saved data that we want
-    }
-  })
-};
+// --> MOVED TO 'tourController.js' and 'userController.js' <--
 
-const getTour = (req,res) => {
-  // variables in the URL are called 'parameters', and they are stored inside 'req.params'
-  console.log(req.params);  // { id: '5' } - this is an object
 
-  // when you multiply a string-number by a real number, it will turn into a real number
-  const id = req.params.id * 1; 
-  
-  // iterate through the 'tours' array and return the value of the first tour whose id matches the searched-for id
-  const tour = tours.find(el => el.id === id);
-  
-  // check if the id being searched for is valid
-  // if (id > tours.length) {
-  // OR
-  // check if the 'tour' variable that came back is 'undefined' from the 'find' method above
-  if (!tour) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'invalid ID'
-    });
-  }
-
-  // send the response with the correct tour data back to the client
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      tour
-    }
-  })
-}
-
-const createTour = (req, res) => {
-  // we do 'req.body' because body is the property that is going to be available on the request...
-  // console.log(req.body);
-
-  // create an ID for the new tours entry:
-  const newId = tours[tours.length-1].id + 1;
-
-  // create a new object using the "Object.assign" method, which takes two existing objects (newId & req.body), and
-  // merges them together into one object
-  const newTour = Object.assign({id: newId}, req.body);
-
-  // Push the new tour object into the tours array
-  tours.push(newTour);
-
-  // write the 'tours-simple' database to the server
-  // when sending data to a web server, the data has to be a string, so we use 'JSON.stringify' to turn the 'tours'
-  // array into a string before finalizing the post request
-  fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`, JSON.stringify(tours), (err) => {
-    // status 201 = "created" - we just 'created' a new tour, so this is appropriate
-    res.status(201).json({
-      //  once again, we use the JSent format
-      status: 'success',
-      data: {
-        tour: newTour
-      }
-    });
-  });
-
-  // must have a response of some kind to complete the request/response cycle
-  // res.send("Done");
-};
-
-const updateTour = (req, res) => {
-  // invalid ID search handling
-  if ((req.params.id * 1) > tours.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'invalid ID'
-    });
-  }
-
-  // testing the patch
-  // const id = req.params.id * 1; 
-  // const tour = tours.find(el => el.id === id);
-  // tour.duration = req.body.duration;
-
-  // valid ID search handling
-  res.status(200).json({
-    status: 'success',
-    data: {
-      // tour: "<Updated tour here...>"
-      tour
-    }
-  })
-};
-
-const deleteTour = (req, res) => {
-  if ((req.params.id * 1) > tours.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'invalid ID'
-    });
-  }
-
-  // valid ID search handling
-  // '204' = 'success: no content', which is what we want for a delete request 
-  res.status(204).json({
-    status: 'success',
-    data: null
-  });
-};
 
 // =====================================
 // 4) ROUTES
@@ -183,29 +70,40 @@ const deleteTour = (req, res) => {
 // ---------------------------------------------
 // routes chained together (NEW WAY)
 // ----------------------------------------
+// --> MOVED TO 'tourRoutes.js' and 'userRoutes.js' <--
+
+// 4.1) CREATING MULTIPLE ROUTERS (MOUNTING)
+// ----------------------------------------
+// here we will create "sub-routes", so that all of our routes are not running through the 'app' variable...
+// we do this by creating new middleware that defines these sub-routes for us. this takes 2 steps
+
+// step 1: create a variable for the new route and set it equal to 'express.Router()
+// const [routeName] = express.Router()
+// --> MOVED TO 'tourRoutes.js' and 'userRoutes.js' <--
+
+// step 2: use the format below to set the url and the name of the new route that we defined in step 1
+// app.use([url], [routeName]) 
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
+
+// step 3: update the existing routes with the routeName and a new route
+/*
+---------------------------
+original way:
 app
   .route('/api/v1/tours')
-  .get(getAllTours)
-  .post(createTour);
-
-app
-  .route('/api/v1/tours/:id')
-  .get(getTour)
-  .patch(updateTour)
-  .delete(deleteTour);
+new way:
+--> MOVED TO 'tourRoutes.js' and 'userRoutes.js' <--
+---------------------------
+*/
 
 // =====================================
 // 5) START SERVER
 // =====================================
-// create a variable for the port
-const port = 3000;
+// --> MOVED TO 'server.js' <--
 
-// set the listen handler using the 'port' variable
-app.listen(port, () => {
-  console.log(`App running on port ${port}...`);
-});
-
-// NOTE: routing means "how a server responds to a certain client request"
+// export the app so that the server.js file can require it
+module.exports = app;
 
 
 
