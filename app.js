@@ -1,25 +1,27 @@
-// =====================================
-// 1)  REQUIRE MODULES
-// =====================================
-const express = require('express');
-const morgan = require('morgan');
+// APP.JSON
+// ======================================
+// everything that is not related to express we will handle outside of app.js
 
-// require the routers from the routes folder
+// 1)  REQUIRE MODULES
+// a: core modules
+const express = require('express');
+
+// b: developer modules
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
-// common practice is to create a variable called "app" that is set to the newly required express
-const app = express();  
+// c: 3rd party modules
+const morgan = require('morgan');
 
+// 2) CREATE EXPRESS VARIABLE CALLED "APP"
+const app = express();
 
-// =====================================
-// 2) MIDDLEWARE
-// =====================================
-// MIDDLEWARE - function that can modifer the incoming request data (stands between the request and the response)
+// 3) MIDDLEWARE
+// middleware are functions that can modify the incoming request data (stands between the request and the response)
 // "app.use([function])"
 
 // 3rd party middleware
-console.log(process.env.NODE_ENV);  // environment variables accessed via 'process.env'
+console.log(process.env.NODE_ENV); // environment variables accessed via 'process.env'
 if (process.env.NODE_ENV != 'production') {
   app.use(morgan('dev'));
 }
@@ -47,14 +49,10 @@ app.use((req, res, next) => {
   // check the 'getAllTours' function below to see how we utilize this 'requestTime' variable inside of the GET REQUEST
 });
 
-
-
 // =====================================
 // 3) ROUTE HANDLERS (WE NOW CALL THEM 'CONTROLLERS')
 // =====================================
 // --> MOVED TO 'tourController.js' and 'userController.js' <--
-
-
 
 // =====================================
 // 4) ROUTES
@@ -82,7 +80,7 @@ app.use((req, res, next) => {
 // --> MOVED TO 'tourRoutes.js' and 'userRoutes.js' <--
 
 // step 2: use the format below to set the url and the name of the new route that we defined in step 1
-// app.use([url], [routeName]) 
+// app.use([url], [routeName])
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 
@@ -104,7 +102,3 @@ new way:
 
 // export the app so that the server.js file can require it
 module.exports = app;
-
-
-
-

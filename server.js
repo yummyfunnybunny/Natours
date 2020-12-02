@@ -1,10 +1,12 @@
-// REQURE MODILES
+// REQURE MODULES
 const dotenv = require('dotenv');
-dotenv.config({path: './config.env'});  // syntax for requiring the config.env file
 const app = require('./app');
 
+dotenv.config({
+  path: './config.env',
+}); // syntax for requiring the config.env file
 
-
+console.log(`current environment: ${app.get('env')}`);
 
 // create a variable for the port
 const port = process.env.PORT || 3000;
