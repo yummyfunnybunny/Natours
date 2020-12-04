@@ -20,16 +20,16 @@ const router = express.Router();
 // router.param('[paramName]', (req, res, next, val) => {});
 // router.param('id', tourController.checkID);
 
-router
-  .route('/')
+router // this route is now named after the sub-route name we created in step 1 and used in step 2
+  .route('/') // the route here is simply '/', because this now points to the root of our sub-route
   .get(tourController.getAllTours)
-  .post(tourController.createTour);
+  .post(tourController.checkBody, tourController.createTour); // here we called two functions in one post. COOL!
 
-router
-  .route('/:id')
-  .get(tourController.getTour)
-  .patch(tourController.updateTour)
-  .delete(tourController.deleteTour);
+router.route('/:id').get(tourController.getTour).patch(tourController.updateTour).delete(tourController.deleteTour);
 
-// EXPORTS
+// NOTE: since the functions are now coming from the 'toursController' object that we required at the top,
+// all of these functions simply need the 'tourController.' infromt of the function name
+
+// EXPORT
+// -----------------------------------------
 module.exports = router;

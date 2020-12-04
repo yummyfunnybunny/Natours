@@ -10,6 +10,7 @@ console.log(`current environment: ${app.get('env')}`);
 
 // connect to MongoDB Atlas
 const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
+
 mongoose
   .connect(DB, {
     // these are just to handle deprecation warnings, so copy/paste this in other projects with mongooese
