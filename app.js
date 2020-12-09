@@ -1,6 +1,7 @@
 // APP.JSON
 // ======================================
 // everything that is not related to express we will handle outside of app.js
+
 // 1)  REQUIRE MODULES
 // a: core modules
 const express = require('express');
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// returns the current date/time
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   next();

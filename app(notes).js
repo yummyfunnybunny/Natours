@@ -22,7 +22,7 @@ const app = express();
 
 // 3rd party middleware
 console.log(process.env.NODE_ENV); // environment variables accessed via 'process.env'
-if (process.env.NODE_ENV != 'production') {
+if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 app.use(express.json());
