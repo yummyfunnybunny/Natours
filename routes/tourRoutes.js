@@ -20,11 +20,18 @@ const router = express.Router();
 // router.param('[paramName]', (req, res, next, val) => {});
 // router.param('id', tourController.checkID);
 
+// == Alias Route ==
+router
+  .route('/top-5-cheap')
+  .get(tourController.aliasTopTours, tourController.getAllTours);
+
+// == Get All Tours Route ==
 router
   .route('/')
   .get(tourController.getAllTours)
   .post(tourController.createTour);
 
+// == Get Tour By ID Route ==
 router
   .route('/:id')
   .get(tourController.getTour)
