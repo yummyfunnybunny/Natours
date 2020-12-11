@@ -131,3 +131,107 @@ exports.deleteTour = async (req, res) => {
     });
   }
 };
+
+// == Tour Stats ==
+exports.getTourStats = async (req, res) => {
+  try {
+    // aggegate the Tour model
+    // define the 'stages' of the aggregation process
+    const stats = await Tour.aggregate([
+      {
+        // stage 1
+        $match: { ratingsAverage: { $gte: 4.5 } },
+      },
+      {
+        // stage 2: group objects based on the below operations
+        $group: {
+          _id: { $toUpper: '$difficulty' }, // gives us a group of data for each difficulty
+          numTours: { $sum: 1 }, // simply calculates the total number of tours (sum of documents in your collection)
+          numRatings: { $sum: '$ratingsQuantity' },
+          avgRating: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+      {
+        $sort: { avgPrice: 1 },
+      },
+      // example of us reusing the match again in the aggregation pipeline
+      // {
+      //   $match: { _id: { $ne: 'EASY ' } },
+      // },
+    ]);
+
+    // send the response
+    res.status(200).json({
+      satus: 'success',
+      data: {
+        stats,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};
+
+exports.getMonthlyPlan = async (req, res) => {
+  try {
+    const year = req.params.year * 1; // 2021 - we have to multiply by 1 because req.params.year returns a string
+
+    const plan = await Tour.aggregate([
+      {
+        // stage 1: unwind will separate instances in an array and create its own document (sort of like destructuring)
+        // so in our example, we are unwinding our data based on the 'startDates' field. well the 'startDates' field
+        // is an array, which contains 3 dates for each tour. we have 9 different tours, so after unwinding this way,
+        // we will have 27 documents, separated by startDates.
+        $unwind: '$startDates',
+      },
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: '$startDates' }, // group documents together by month
+          numTourStarts: { $sum: 1 }, // sums up the total number of tours starting in that month
+          tours: { $push: '$name' }, // creates a new array and uses the 'push' method to add to it
+        },
+      },
+      {
+        $addFields: { month: '$_id' },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+      {
+        $sort: { numToursStarts: -1 }, // 1 = ascending order, -1 = descending order
+      },
+      {
+        $limit: 12, // you can set this lower if you want to remove the non-busy months
+      },
+    ]);
+
+    // send the response
+    res.status(200).json({
+      satus: 'success',
+      data: {
+        plan,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};
