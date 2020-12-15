@@ -1,4 +1,4 @@
-// 1)  REQUIRE MODULES
+// == Require Modules/Packages ==
 const Tour = require('../Models/tourModel');
 const APIFeatures = require('../Utilities/apiFeatures');
 const catchAsync = require('../Utilities/catchAsync');

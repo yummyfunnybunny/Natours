@@ -1,17 +1,30 @@
+// == Require Modules/Packages ==
 const AppError = require('../Utilities/appError');
 
+// function handler for incorrect ID search
 const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}: ${err.value}.`;
   return new AppError(message, 400);
 };
 
+// function handler for duplicate document name
 const handleDuplicateFieldsDB = (err) => {
-  console.log(err.errmsg);
-  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+  // console.log(err.errmsg);
+  // console.log(Object.values(err.keyValue));
+  // const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+  const value = Object.values(err.keyValue);
   const message = `Duplicate field value ${value}. Please use another value`;
   return new AppError(message, 400);
 };
 
+// function handler for mongoose validation errors
+const handleValidationErrorDB = (err) => {
+  const errors = Object.values(err.errors).map((el) => el.message);
+  const message = `Invalid input data: ${errors.join('. ')}`;
+  return new AppError(message, 400);
+};
+
+// sends the development environment errors
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -21,6 +34,7 @@ const sendErrorDev = (err, res) => {
   });
 };
 
+// sends the production environment errors
 const sendErrorProd = (err, res) => {
   // Operational error that we trust, send message to client
   if (err.isOperational) {
@@ -31,7 +45,7 @@ const sendErrorProd = (err, res) => {
     // Programming or other unknown error, don't leak error details to client
   } else {
     // Log errors
-    console.error('ERROR', err);
+    //console.error('ERROR', err);
     // Send generic erroe message
     res.status(500).json({
       status: 'error',
@@ -52,14 +66,24 @@ module.exports = (err, req, res, next) => {
 
     // We are in production, send a limited error message to the user
   } else if (process.env.NODE_ENV === 'production') {
+    // make a copy of the err object through desctructuring
     let error = { ...err };
+
+    // incorrect ID error check
     if (err.name === 'CastError') {
       error = handleCastErrorDB(error);
     }
 
+    // duplicate field error check
     if (error.code === 11000) {
       error = handleDuplicateFieldsDB(error);
     }
+
+    // Validation Error Check
+    if (error._message === 'Validation failed') {
+      error = handleValidationErrorDB(error);
+    }
+
     sendErrorProd(error, res);
   }
 };

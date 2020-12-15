@@ -1,20 +1,23 @@
-// 1)  REQUIRE MODULES
-// a: core modules
-// b: developer modules
-// c: 3rd party modules
+// == Require Modules/Packages ==
 const express = require('express');
-const userController = require('./../controllers/userController');
+const userController = require('../controllers/userController');
+const authController = require('../controllers/authController');
+
 const router = express.Router();
 
-// ROUTE HANDLER FUNCTIONS
-// ------------------------------------
+// == Route Handlers ==
+router.post('/signup', authController.signup);
 
-// ROUTES
-// -------------------------------------
-router.route('/').get(userController.getAllUsers).post(userController.createUser);
+router
+  .route('/')
+  .get(userController.getAllUsers)
+  .post(userController.createUser);
 
-router.route('/:id').get(userController.getUser).patch(userController.updateUser).delete(userController.deleteUser);
+router
+  .route('/:id')
+  .get(userController.getUser)
+  .patch(userController.updateUser)
+  .delete(userController.deleteUser);
 
-// EXPORT
-// -----------------------------------------
+// == Export The User Routers ==
 module.exports = router;

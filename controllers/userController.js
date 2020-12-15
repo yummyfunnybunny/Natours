@@ -1,7 +1,4 @@
-// 1)  REQUIRE MODULES
-// a: core modules
-// b: developer modules
-// c: 3rd party modules
+// == Require Modules/Packages ==
 exports.getAllUsers = (req, res) => {
   res.status(500).json({
     // 500 = internal server error

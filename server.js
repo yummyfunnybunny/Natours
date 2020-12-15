@@ -2,6 +2,13 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
+// Handle uncaught Exception
+process.on('uncaughtException', (err) => {
+  console.log('UNHANDLED ESCEPTION! shutting down...');
+  console.log(err.name, err.message);
+  process.exit(1);
+});
+
 // syntax for requiring the config.env file (which adds everything in that file to 'process.env')
 // this must be placed above "app" in order to log the requests we make properly
 dotenv.config({
@@ -36,8 +43,18 @@ mongoose
 const port = process.env.PORT || 3000;
 
 // set the listen handler using the 'port' variable
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
 
-// NOTE: routing means "how a server responds to a certain client request"
+// Global Unhandled promise rejection
+process.on('unhandledRejection', (err) => {
+  console.log('UNHANDLED REJECTION! shutting down...');
+  console.log(err.name, err.message);
+
+  // gracefully shut down the server
+  server.close(() => {
+    // shuts down the application
+    process.exit(1);
+  });
+});

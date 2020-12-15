@@ -52,7 +52,7 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       validate: {
         validator: function (val) {
-          // 'this' keyword only points to current doc on NEW document creation, not UPDATE or DELETE
+          // 'this' keyword only points to current doc on NEW document SAVE, not UPDATE or DELETE
           return val < this.price;
         },
         message: 'Discount price ({VALUE}) cant be higher than the price',
