@@ -1,12 +1,12 @@
-// == Require Modules/Packages ==
+// ANCHOR -- Require Modules --
 const Tour = require('../Models/tourModel');
 const APIFeatures = require('../Utilities/apiFeatures');
 const catchAsync = require('../Utilities/catchAsync');
 const AppError = require('../Utilities/appError');
 
-// CONTROLLERS
+// SECTION == Middleware ==
 
-// == middleware ==
+// ANCHOR -- Alias Top Tours --
 // manupulates the get request to create a sort of default query
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5'; // everything here is a string
@@ -15,9 +15,9 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
-// === CONTROLLER FUNCTIONS ===
+// SECTION == Functions ==
 
-// == Get All Tours ==
+// ANCHOR -- Get All Tours --
 exports.getAllTours = catchAsync(async (req, res, next) => {
   // Execute The Query with whatever features you want
   const features = new APIFeatures(Tour.find(), req.query)
@@ -39,15 +39,19 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
   });
 });
 
-// == Get Tour By ID ==
+// ANCHOR -- Get Tour By ID --
 exports.getTour = catchAsync(async (req, res, next) => {
+  // save the requested tour
   const tour = await Tour.findById(req.params.id); // Tour.findOne({ _id: req.params.id})
 
-  // if (!tour) {
-  //   return next(new AppError('No tour found with that ID', 404));
-  // }
+  // if the id was invalid, return an error
+  if (!tour) {
+    return next(new AppError('No tour found with that ID', 404));
+  }
 
+  // send success response
   res.status(200).json({
+    // JSent format response
     status: 'success',
     data: {
       tour,
@@ -55,7 +59,7 @@ exports.getTour = catchAsync(async (req, res, next) => {
   });
 });
 
-// == Create Tour ==
+// ANCHOR -- Create Tour --
 exports.createTour = catchAsync(async (req, res, next) => {
   // create a new document directly to the Tour model and save it to the const newTour
   // must use await here since Tour.create returns a promise
@@ -63,7 +67,7 @@ exports.createTour = catchAsync(async (req, res, next) => {
 
   // send the response
   res.status(201).json({
-    //  JSent format response
+    // JSent format response
     status: 'success',
     data: {
       tour: newTour,
@@ -71,8 +75,9 @@ exports.createTour = catchAsync(async (req, res, next) => {
   });
 });
 
-// == Update Tour ==
+// ANCHOR -- Update Tour --
 exports.updateTour = catchAsync(async (req, res, next) => {
+  // search for the tour to update based on the ID input
   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
     // sets 'tour' equal to the updated data and not the original data
     new: true,
@@ -80,11 +85,12 @@ exports.updateTour = catchAsync(async (req, res, next) => {
     runValidators: true, // this will re-run all validators in the schema when updating a document
   });
 
+  // If searched-for ID comes up empty, return an error
   if (!tour) {
     return next(new AppError('No tour found with that ID', 404));
   }
 
-  // send the response
+  // send success response
   res.status(200).json({
     status: 'success',
     data: {
@@ -93,22 +99,24 @@ exports.updateTour = catchAsync(async (req, res, next) => {
   });
 });
 
-// == Delete Tour ==
+// ANCHOR -- Delete Tour --
 exports.deleteTour = catchAsync(async (req, res, next) => {
+  // search for the tour to delete
   const tour = await Tour.findByIdAndDelete(req.params.id);
 
+  // if no tour is found, return an error
   if (!tour) {
     return next(new AppError('No tour found with that ID', 404));
   }
 
-  // send the response
+  // send success response
   res.status(204).json({
     status: 'success',
     data: null,
   });
 });
 
-// == Tour Stats ==
+// ANCHOR -- Get Tour Stats --
 exports.getTourStats = catchAsync(async (req, res, next) => {
   // aggegate the Tour model
   // define the 'stages' of the aggregation process
@@ -138,7 +146,7 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
     // },
   ]);
 
-  // send the response
+  // send success response
   res.status(200).json({
     satus: 'success',
     data: {
@@ -147,6 +155,7 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
   });
 });
 
+// ANCHOR -- Get Monthly Plan --
 exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
   const year = req.params.year * 1; // 2021 - we have to multiply by 1 because req.params.year returns a string
 
@@ -189,7 +198,7 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     },
   ]);
 
-  // send the response
+  // send success response
   res.status(200).json({
     satus: 'success',
     data: {

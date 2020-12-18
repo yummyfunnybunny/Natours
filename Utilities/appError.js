@@ -1,3 +1,4 @@
+// ANCHOR -- Create App Error --
 class AppError extends Error {
   constructor(message, statusCode) {
     // 'message' is the only parameter that the built-in Error constructor will accept
@@ -17,4 +18,5 @@ class AppError extends Error {
   }
 }
 
+// ANCHOR -- Export --
 module.exports = AppError;

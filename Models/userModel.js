@@ -1,10 +1,10 @@
-// == Require Modules/Packages ==
+// ANCHOR -- Require Modules --
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 
-// == Create The User Schema ==
+// ANCHOR -- Create The User Schema --
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -53,9 +53,9 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// == MiddleWare ==
+// SECTION == MiddleWare ==
 
-// - Password Hashing Middleware -
+// ANCHOR --  Password Hashing --
 userSchema.pre('save', async function (next) {
   // only run this middleware if a password has been created or updated
   if (!this.isModified('password')) {
@@ -66,18 +66,28 @@ userSchema.pre('save', async function (next) {
 
   // this line basically deletes the passwordConfirm field, since we only needed it at the very begining
   this.passwordConfirm = undefined;
+
+  // proceed to next middleware
   next();
 });
 
+// ANCHOR --  Set PasswordChangedAt --
 userSchema.pre('save', function (next) {
-  if (!this.isModified('password') || this.isNew) return next();
-
+  // check if the password was modified or just created
+  if (!this.isModified('password') || this.isNew) {
+    return next();
+  }
+  // set the timeStamp
   this.passwordChangedAt = Date.now() - 1000;
+
+  // proceed to next middleware
   next();
 });
 
-// == Instance Methods ==
+// SECTION == Instance Methods ==
 
+// ANCHOR -- Correct Password --
+// -- used by: authController.login, authController.updatePassword
 // we will use bcrypt here to compare the input password from a user trying to login with the hashed password in the DB
 userSchema.methods.correctPassword = async function (
   inputPassword,
@@ -86,7 +96,9 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(inputPassword, hashedPassword);
 };
 
-// this function checks if the user as ever changed their password after initial creation - used in authController protect function
+// ANCHOR -- Changed Password After --
+// -- used by: authController.protect
+// this function checks if the user has ever changed their password after initial creation
 userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
   if (this.passwordChangedAt) {
     // 'this' points to the current document
@@ -101,6 +113,8 @@ userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
   return false;
 };
 
+// ANCHOR -- Create Password Reset Token --
+// -- used by: authController.forgotPassword
 userSchema.methods.createPasswordResetToken = function () {
   // create a random token number, 32 characters long, saved as a hexadecimal
   const resetToken = crypto.randomBytes(32).toString('hex');
@@ -111,15 +125,19 @@ userSchema.methods.createPasswordResetToken = function () {
     .update(resetToken)
     .digest('hex');
 
-  console.log({ resetToken }, this.passwordResetToken);
+  //console.log({ resetToken }, this.passwordResetToken);
 
+  // set the expiration of the password reset token to 10 minutes (converting from miliseconds)
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
+  // return the reset token
   return resetToken;
 };
 
-// == Create The User Model ==
+// SECTION == Model Creation ==
+
+// ANCHOR -- Create The User Model --
 const User = mongoose.model('User', userSchema);
 
-// == Export The User Model ==
+// ANCHOR -- Export The User Model --
 module.exports = User;

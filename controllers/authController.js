@@ -1,4 +1,4 @@
-// ANCHOR == Require Modules ==
+// ANCHOR -- Require Modules --
 const crypto = require('crypto');
 const { promisify } = require('util'); // built-in node module
 const jwt = require('jsonwebtoken');
@@ -7,7 +7,10 @@ const catchAsync = require('../Utilities/catchAsync');
 const AppError = require('../Utilities/appError');
 const sendEmail = require('../Utilities/email');
 
-// ANCHOR == Sign Token ==
+// SECTION == Functions ==
+
+// ANCHOR -- Sign Token --
+// -- used by: createSendToken
 const signToken = (id) => {
   return jwt.sign(
     {
@@ -20,7 +23,8 @@ const signToken = (id) => {
   );
 };
 
-// ANCHOR == Create Send Token ==
+// ANCHOR -- Create Send Token --
+// -- used by: signUp, login, resetPassword, updatePassword
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
   res.status(statusCode).json({
@@ -32,7 +36,8 @@ const createSendToken = (user, statusCode, res) => {
   });
 };
 
-// ANCHOR == Signup User ==
+// ANCHOR -- Signup User --
+
 exports.signup = catchAsync(async (req, res, next) => {
   // 1) save all of the necessary user inputs into a model object 'newUser'
   const newUser = await User.create({
@@ -48,7 +53,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   createSendToken(newUser, 201, res);
 });
 
-// ANCHOR == Login User ==
+// ANCHOR -- Login User --
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -117,7 +122,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   next();
 });
 
-// ANCHOR == Restrict access ==
+// ANCHOR -- Restrict access --
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     // roles is an array: ['lead-guide', 'admin']. role='user'
@@ -130,7 +135,7 @@ exports.restrictTo = (...roles) => {
   };
 };
 
-// ANCHOR == Forgot Password ==
+// ANCHOR -- Forgot Password --
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   // 1) get user based on POSTed email
   const user = await User.findOne({ email: req.body.email });
@@ -186,7 +191,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-// ANCHOR == Reset Password ==
+// ANCHOR -- Reset Password --
 exports.resetPassword = catchAsync(async (req, res, next) => {
   // 1) get user based on the token
 
@@ -218,7 +223,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-// ANCHOR == Update Password ==
+// ANCHOR -- Update Password --
 exports.updatePassword = catchAsync(async (req, res, next) => {
   // 1) Get the user from COLLECTION
   console.log(req.body);

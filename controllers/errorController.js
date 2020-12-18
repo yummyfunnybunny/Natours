@@ -1,12 +1,16 @@
-// == Require Modules/Packages ==
+// ANCHOR -- Require Modules --
 const AppError = require('../Utilities/appError');
 
+// SECTION == Functions ==
+
+// ANCHOR -- Cast Error --
 // function handler for incorrect ID search
 const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}: ${err.value}.`;
   return new AppError(message, 400);
 };
 
+// ANCHOR -- Duplicate Fields --
 // function handler for duplicate document name
 const handleDuplicateFieldsDB = (err) => {
   // console.log(err.errmsg);
@@ -17,6 +21,7 @@ const handleDuplicateFieldsDB = (err) => {
   return new AppError(message, 400);
 };
 
+// ANCHOR -- validation errors --
 // function handler for mongoose validation errors
 const handleValidationErrorDB = (err) => {
   const errors = Object.values(err.errors).map((el) => el.message);
@@ -24,16 +29,19 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+// ANCHOR -- Invalid Json Web Token --
 const handleJWTError = (err) => {
   const message = `❌ ${err.name} ❌ You are trying to log in with an invalid token. Please login again.`;
   return new AppError(message, 401);
 };
 
+// ANCHOR -- Expired Json Web Token --
 const handleJWTExpired = (err) => {
   const message = `❌ ${err.name} ❌ You have not logged in recently enough. Please log in again`;
   return new AppError(message, 401);
 };
 
+// ANCHOR -- Send Development Error --
 // sends the development environment errors
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -44,6 +52,7 @@ const sendErrorDev = (err, res) => {
   });
 };
 
+// ANCHOR -- Send Production Errors --
 // sends the production environment errors
 const sendErrorProd = (err, res) => {
   // Operational error that we trust, send message to client
@@ -64,6 +73,7 @@ const sendErrorProd = (err, res) => {
   }
 };
 
+// SECTION == Exports ==
 module.exports = (err, req, res, next) => {
   // set the statusCode to what was passed through, or the default
   err.statusCode = err.statusCode || 500;

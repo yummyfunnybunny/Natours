@@ -1,8 +1,9 @@
-// == Require Modules/Packages ==
+// ANCHOR -- Require Modules --
 const nodemailer = require('nodemailer');
 
-// == Functions ==
+// SECTION == Functions ==
 
+// ANCHOR -- Send Email --
 const sendEmail = async (options) => {
   // 1) Create a transporter
   const transporter = nodemailer.createTransport({
@@ -26,5 +27,6 @@ const sendEmail = async (options) => {
   await transporter.sendMail(mailOptions);
 };
 
-// == Export Modules ==
+// SECTION == Export ==
+// ANCHOR -- Export --
 module.exports = sendEmail;

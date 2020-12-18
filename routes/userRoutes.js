@@ -1,11 +1,12 @@
-// == Require Modules/Packages ==
+// ANCHOR -- Require Modules --
 const express = require('express');
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
 
+// ANCHOR -- Initialize Router --
 const router = express.Router();
 
-// == Route Handlers ==
+// ANCHOR -- Route --
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 
@@ -28,5 +29,5 @@ router
   .patch(userController.updateUser)
   .delete(userController.deleteUser);
 
-// == Export The User Routers ==
+// ANCHOR -- Export The User Routers --
 module.exports = router;
