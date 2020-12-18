@@ -1,9 +1,9 @@
-// ANCHOR --
+// ANCHOR -- Require Modiles --
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const validator = require('validator');
 
-// CREATE SCHEMA
+// ANCHOR -- Create Tour Schema --
 const tourSchema = new mongoose.Schema(
   {
     // Schema Definition (the model)

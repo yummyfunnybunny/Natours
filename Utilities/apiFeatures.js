@@ -2,14 +2,14 @@
 // the api features class is called inside query functions in the controllers folder
 // this class allows those functions to altar the incoming query from the user
 
-// Create the Class
+// ANCHOR -- Create the Class --
 class APIFeatures {
   constructor(query, queryString) {
     this.query = query;
     this.queryString = queryString;
   }
 
-  // Filter Function
+  // ANCHOR -- Filter Function --
   filter() {
     console.log(this.queryString);
     // create a hard copy of the query by using destructuring within a newly created object
@@ -20,7 +20,9 @@ class APIFeatures {
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
 
     // loop through the preQuery and delete all exluded fields that appear
-    excludedFields.forEach((el) => delete preQuery[el]);
+    excludedFields.forEach((el) => {
+      delete preQuery[el];
+    });
 
     // Advanced Filtering
     let queryString = JSON.stringify(preQuery);
@@ -31,13 +33,14 @@ class APIFeatures {
       (match) => `$${match}` // use this callback function syntax: template literals
     );
 
-    //
+    // sets the query object to the altared queryString
     this.query = this.query.find(JSON.parse(queryString));
 
-    // return the filter results
+    // return the filtered query object
     return this;
   }
 
+  // ANCHOR -- Sort Function --
   sort() {
     if (this.queryString.sort) {
       const sortBy = this.queryString.sort.split(',').join(' ');
@@ -50,6 +53,7 @@ class APIFeatures {
     return this;
   }
 
+  // ANCHOR -- Limit Fields --
   limitFields() {
     if (this.queryString.fields) {
       const fields = this.queryString.fields.split(',').join(' ');
@@ -62,6 +66,7 @@ class APIFeatures {
     return this;
   }
 
+  // // ANCHOR -- Add Pagination --
   paginate() {
     const page = this.queryString.page * 1 || 1;
     const limit = this.queryString.limit * 1 || 100;
@@ -73,4 +78,5 @@ class APIFeatures {
   }
 }
 
+// ANCHOR -- Export --
 module.exports = APIFeatures;

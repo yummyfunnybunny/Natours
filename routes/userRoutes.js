@@ -6,7 +6,7 @@ const authController = require('../controllers/authController');
 // ANCHOR -- Initialize Router --
 const router = express.Router();
 
-// ANCHOR -- Route --
+// ANCHOR -- Routes --
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 
@@ -17,6 +17,8 @@ router.patch(
   authController.protect,
   authController.updatePassword
 );
+router.patch('/updateMe', authController.protect, userController.updateMe);
+router.delete('/deleteMe', authController.protect, userController.deleteMe);
 
 router
   .route('/')
