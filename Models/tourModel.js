@@ -75,7 +75,7 @@ const tourSchema = new mongoose.Schema(
     createdAt: {
       type: Date,
       default: Date.now(),
-      select: false,
+      select: false, // stops this field from being projected to the client
     },
     startDates: [Date],
     secretTour: {

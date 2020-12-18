@@ -38,6 +38,7 @@ app.use(express.static(`${__dirname}/public`));
 // returns the current date/time
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  //console.log(req.headers); // get access to the headers in express
   next();
 });
 

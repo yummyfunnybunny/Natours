@@ -1,4 +1,5 @@
 // == Require Modules/Packages ==
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
@@ -19,10 +20,16 @@ const userSchema = new mongoose.Schema(
       validate: [validator.isEmail, 'User must provide a valid Email'],
     },
     photo: String,
+    role: {
+      type: String,
+      enum: ['user', 'guide', 'lead-guide', 'admin'],
+      default: 'user',
+    },
     password: {
       type: String,
       required: [true, 'User must create a valid password'],
       minlength: 8,
+      select: false, // stops this field from being projected to the client
     },
     passwordConfirm: {
       type: String,
@@ -35,6 +42,9 @@ const userSchema = new mongoose.Schema(
         message: 'Passwords are not the same!',
       },
     },
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
   },
   {
     // Schema Options
@@ -58,6 +68,55 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+// == Instance Methods ==
+
+// we will use bcrypt here to compare the input password from a user trying to login with the hashed password in the DB
+userSchema.methods.correctPassword = async function (
+  inputPassword,
+  hashedPassword
+) {
+  return await bcrypt.compare(inputPassword, hashedPassword);
+};
+
+// this function checks if the user as ever changed their password after initial creation - used in authController protect function
+userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
+  if (this.passwordChangedAt) {
+    // 'this' points to the current document
+    const changedTimeStamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    //console.log(this.passwordChangedAt, JWTTimeStamp);
+    return JWTTimeStamp < changedTimeStamp;
+  }
+  // false means password was never changed
+  return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  // create a random token number, 32 characters long, saved as a hexadecimal
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // hash the resetToken using 'sha256 encryption algorithm', saved as a hexadecimal
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  console.log({ resetToken }, this.passwordResetToken);
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
+};
 
 // == Create The User Model ==
 const User = mongoose.model('User', userSchema);

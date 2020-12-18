@@ -1,8 +1,6 @@
-// 1)  REQUIRE MODULES
-// a: core modules
+// == Require Modules/Packages ==
 const express = require('express');
-
-// b: developer modules
+const authController = require('../controllers/authController');
 const tourController = require('../controllers/tourController'); // import the functions from the 'tourController' file
 // you can also use destructuring on the require function above so that all of the functions coming from
 // the 'tourController' file are each their own stand-alone function inside of this module
@@ -34,7 +32,7 @@ router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
 // == Get All Tours Route ==
 router
   .route('/')
-  .get(tourController.getAllTours)
+  .get(authController.protect, tourController.getAllTours)
   .post(tourController.createTour);
 
 // == Get Tour By ID Route ==
@@ -42,7 +40,11 @@ router
   .route('/:id')
   .get(tourController.getTour)
   .patch(tourController.updateTour)
-  .delete(tourController.deleteTour);
+  .delete(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.deleteTour
+  );
 
 // EXPORTS
 module.exports = router;

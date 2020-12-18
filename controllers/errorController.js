@@ -24,6 +24,16 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+const handleJWTError = (err) => {
+  const message = `❌ ${err.name} ❌ You are trying to log in with an invalid token. Please login again.`;
+  return new AppError(message, 401);
+};
+
+const handleJWTExpired = (err) => {
+  const message = `❌ ${err.name} ❌ You have not logged in recently enough. Please log in again`;
+  return new AppError(message, 401);
+};
+
 // sends the development environment errors
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -45,7 +55,7 @@ const sendErrorProd = (err, res) => {
     // Programming or other unknown error, don't leak error details to client
   } else {
     // Log errors
-    //console.error('ERROR', err);
+    console.error('❌ ERROR ❌:', err);
     // Send generic erroe message
     res.status(500).json({
       status: 'error',
@@ -84,6 +94,15 @@ module.exports = (err, req, res, next) => {
       error = handleValidationErrorDB(error);
     }
 
+    // Invalid JWT
+    if (error.name === 'JsonWebTokenError') {
+      error = handleJWTError(error);
+    }
+
+    // Token Expired Error
+    if (error.name === 'TokenExpiredError') {
+      error = handleJWTExpired(error);
+    }
     sendErrorProd(error, res);
   }
 };
