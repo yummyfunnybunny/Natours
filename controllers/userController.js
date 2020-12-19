@@ -76,7 +76,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
-//
+// ANCHOR -- Create User --
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: 'error',
@@ -84,6 +84,7 @@ exports.createUser = (req, res) => {
   });
 };
 
+// ANCHOR -- Get User --
 exports.getUser = (req, res) => {
   res.status(500).json({
     status: 'error',
@@ -91,6 +92,7 @@ exports.getUser = (req, res) => {
   });
 };
 
+// ANCHOR -- Update User --
 exports.updateUser = (req, res) => {
   res.status(500).json({
     status: 'error',
@@ -98,6 +100,7 @@ exports.updateUser = (req, res) => {
   });
 };
 
+// ANCHOR -- Delete User --
 exports.deleteUser = (req, res) => {
   res.status(500).json({
     status: 'error',

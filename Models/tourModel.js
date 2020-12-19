@@ -90,14 +90,18 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
-// == Define our Virtual Properties ==
+// SECTION == Virtual Properties ==
 // virtual properties are created each time a request is made
 // we cannot use virtual properties as part of a query, since they are not part of the database
+
+// ANCHOR -- Duration Weeks --
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
-// == DOCUMENT MIDDLE-WARE ==
+// SECTION == DOCUMENT MIDDLE-WARE ==
+
+// ANCHOR -- slugify --
 // Pre-Save Hook
 // the '.pre()' command will run before .save() and .create(), but NOT before .insertMany()
 tourSchema.pre('save', function (next) {
@@ -105,6 +109,7 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// ANCHOR -- Example --
 // we can have multiple pre/post save hooks...
 // this is just an example that will console log a message.
 tourSchema.pre('save', function (next) {
@@ -112,6 +117,7 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// ANCHOR -- Example --
 // Post-Save Hook
 // .post() is executed after all .pre() hooks
 // the .post() middle-waire has access to the 'doc' argument, which is the document that we just saved to the database
@@ -121,15 +127,18 @@ tourSchema.post('save', function (doc, next) {
   next();
 });
 
-// ==  QUERY MIDDLE-WARE ==
+// SECTION == QUERY MIDDLE-WARE ==
 // the .find() function is what makes this 'query middle-ware' instead of document middle-ware
 // other than that, they are exactly the same
+
+// ANCHOR -- Filter Secret Tours --
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
   this.start = Date.now();
   next();
 });
 
+// ANCHOR -- Query Timer --
 // since this query middle-ware is the .post() method, it has access to the 'docs' (completed documents)
 tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
@@ -137,15 +146,19 @@ tourSchema.post(/^find/, function (docs, next) {
   next();
 });
 
-// == AGGREGATION MIDDLE-WARE ==
+// SECTION == Aggregation Middle-Ware ==
+
+// ANCHOR -- Match --
 tourSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
   console.log(this.pipeline());
   next();
 });
 
-// CREATE MODEL
+// SECTION == Model Creation & Export ==
+
+// Create Tour Model
 const Tour = mongoose.model('Tour', tourSchema);
 
-// EXPORT
+// Export Model
 module.exports = Tour;

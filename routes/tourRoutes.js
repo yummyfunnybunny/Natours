@@ -1,12 +1,12 @@
-// == Require Modules/Packages ==
+// ANCHOR -- Require Modules --
 const express = require('express');
 const authController = require('../controllers/authController');
 const tourController = require('../controllers/tourController'); // import the functions from the 'tourController' file
 // you can also use destructuring on the require function above so that all of the functions coming from
 // the 'tourController' file are each their own stand-alone function inside of this module
-const router = express.Router();
 
-// c: 3rd party modules
+// ANCHOR -- Initialize Tour Router --
+const router = express.Router();
 
 // ROUTES
 // -------------------------------------
@@ -18,24 +18,24 @@ const router = express.Router();
 // router.param('[paramName]', (req, res, next, val) => {});
 // router.param('id', tourController.checkID);
 
-// == Alias Route ==
+// ANCHOR -- Top 5 Cheap Tours Route --
 router
   .route('/top-5-cheap')
   .get(tourController.aliasTopTours, tourController.getAllTours);
 
-// == Tour Stats Route ==
+// ANCHOR -- Tour Stats Route --
 router.route('/tour-stats').get(tourController.getTourStats);
 
-// Get Tour Monthly Plan Route ==
+// ANCHOR -- Get Monthly Plan Route --
 router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
 
-// == Get All Tours Route ==
+// ANCHOR -- Get All Tours Route --
 router
   .route('/')
   .get(authController.protect, tourController.getAllTours)
   .post(tourController.createTour);
 
-// == Get Tour By ID Route ==
+// ANCHOR -- Get Tour By ID Route --
 router
   .route('/:id')
   .get(tourController.getTour)
@@ -46,5 +46,5 @@ router
     tourController.deleteTour
   );
 
-// EXPORTS
+// ANCHOR -- Export Router --
 module.exports = router;
