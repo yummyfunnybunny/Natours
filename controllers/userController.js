@@ -21,16 +21,6 @@ const filterObj = (reqBody, ...allowedFields) => {
   return newObj;
 };
 
-// ANCHOR -- Delete Me --
-exports.deleteMe = catchAsync(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.user.id, { active: false });
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
-
 // ANCHOR -- Get All Users --
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   // await the finalquery to the new constant 'users'
@@ -73,6 +63,16 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     data: {
       user: updatedUser,
     },
+  });
+});
+
+// ANCHOR -- Delete Me --
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
   });
 });
 

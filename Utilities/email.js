@@ -28,5 +28,4 @@ const sendEmail = async (options) => {
 };
 
 // SECTION == Export ==
-// ANCHOR -- Export --
 module.exports = sendEmail;

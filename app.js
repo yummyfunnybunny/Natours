@@ -1,4 +1,4 @@
-// APP.JSON
+// APP.JS
 // ======================================
 // everything that is not related to express we will handle outside of app.js
 
@@ -45,8 +45,7 @@ const limiter = rateLimit({
 // how intialize the limiter with all routes with '/api' in it
 app.use('/api', limiter); // app.use(route,limiter);
 
-// ANCHOR -- Connect Files --
-// connect json and the public file for useage
+// ANCHOR -- Body Parser --
 // body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' })); // sets the limit of the body to 10kb
 
@@ -96,13 +95,13 @@ app.use((req, res, next) => {
 
 // SECTION == Initialize Routers ==
 
-// ANCHOR -- Connect Mounted Routes --
+// ANCHOR -- Mounted Routes --
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 
 // ANCHOR -- Handle Unhandled Routes --
 app.all('*', (req, res, next) => {
-  next(new AppError(`Cannot find ${req.originalUrl} on this server :(`, 404));
+  next(new AppError(`Cannot find ${req.originalUrl} on this server 🐟`, 404));
 });
 
 // SECTION ==  Global Error Handler ==

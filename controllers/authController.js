@@ -93,6 +93,7 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+// ANCHOR -- Protect --
 exports.protect = catchAsync(async (req, res, next) => {
   // 1) - check if JWT exists -
   let token;
