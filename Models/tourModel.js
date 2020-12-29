@@ -1,7 +1,7 @@
 // ANCHOR -- Require Modiles --
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const User = require('./userModel');
+// const User = require('./userModel');
 // const validator = require('validator');
 
 // ANCHOR -- Create Tour Schema --
@@ -40,6 +40,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be greater than 1.0'],
       max: [5, 'Rating must be less than or equal to 5.0'],
+      set: (val) => Math.round(val * 10) / 10, // this will round to the nearest 10th
     },
     ratingsQuantity: {
       type: Number,
@@ -123,6 +124,15 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// SECTION == Create Indexes ==
+
+// tourSchema.index({ price: 1 });
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
+
+// !SECTION
+
 // SECTION == Virtual Properties ==
 // virtual properties are created each time a request is made
 // we cannot use virtual properties as part of a query, since they are not part of the database
@@ -155,6 +165,7 @@ tourSchema.pre('save', function (next) {
 });
 
 // ANCHOR -- Embed User Documents inside Tour Documents --
+// this is just an example of how we would embed the user documents inside the tour documents if we wanted to
 // tourSchema.pre('save', async function (next) {
 //   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
 //   this.guides = await Promise.all(guidesPromises);

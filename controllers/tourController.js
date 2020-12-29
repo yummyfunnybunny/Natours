@@ -2,7 +2,7 @@
 const Tour = require('../Models/tourModel');
 const catchAsync = require('../Utilities/catchAsync');
 const factory = require('./handlerFactory');
-// const AppError = require('../Utilities/appError');
+const AppError = require('../Utilities/appError');
 
 // SECTION == Middleware ==
 
@@ -121,6 +121,42 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     satus: 'success',
     data: {
       plan,
+    },
+  });
+});
+
+// ANCHOR -- Get Tours Within --
+
+//  /tours-within/:distance/center/:latlng/unit/:unit
+// /tours-distance/233/center/-40,45/unit/mi
+
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  // convert the distance provided into the mongoDB accepted unit 'radian'
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide  latitude and longitude in the format lat,lng.',
+        400
+      )
+    );
+  }
+
+  console.log(distance, lat, lng, unit);
+
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours,
     },
   });
 });

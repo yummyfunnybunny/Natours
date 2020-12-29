@@ -58,6 +58,9 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// SECTION == Create Indexes ==
+// !SECTION
+
 // SECTION == Virtual Properties ==
 // !SECTION
 

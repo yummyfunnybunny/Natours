@@ -9,22 +9,22 @@ const router = express.Router();
 // ANCHOR -- Routes --
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
-
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
-router.patch(
-  '/updatePassword',
-  authController.protect,
-  authController.updatePassword
-);
-router.get(
-  '/Me',
-  authController.protect,
-  userController.getMe,
-  userController.getUser
-);
-router.patch('/updateMe', authController.protect, userController.updateMe);
-router.delete('/deleteMe', authController.protect, userController.deleteMe);
+
+// ANCHOR -- Protect Routes --
+// this acts as middleware that will run before any of the below routes
+// all routes below this protect middleware is protected
+router.use(authController.protect);
+
+router.patch('/updatePassword', authController.updatePassword);
+router.get('/Me', userController.getMe, userController.getUser);
+router.patch('/updateMe', userController.updateMe);
+router.delete('/deleteMe', userController.deleteMe);
+
+// ANCHOR -- Restrict Routes --
+// this middleware will restrict all the below routes to admin usage only
+router.use(authController.restrictTo('admin'));
 
 router
   .route('/')
