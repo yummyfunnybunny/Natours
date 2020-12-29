@@ -27,5 +27,7 @@ const sendEmail = async (options) => {
   await transporter.sendMail(mailOptions);
 };
 
-// SECTION == Export ==
+// !SECTION
+
+// ANCHOR -- Export --
 module.exports = sendEmail;

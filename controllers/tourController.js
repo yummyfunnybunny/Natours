@@ -1,8 +1,8 @@
 // ANCHOR -- Require Modules --
 const Tour = require('../Models/tourModel');
-const APIFeatures = require('../Utilities/apiFeatures');
 const catchAsync = require('../Utilities/catchAsync');
-const AppError = require('../Utilities/appError');
+const factory = require('./handlerFactory');
+// const AppError = require('../Utilities/appError');
 
 // SECTION == Middleware ==
 
@@ -15,106 +15,24 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
+// !SECTION
+
 // SECTION == Functions ==
 
 // ANCHOR -- Get All Tours --
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  // Execute The Query with whatever features you want
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-
-  // await the finalquery to the new constant 'tours'
-  const tours = await features.query;
-
-  // Send Response
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
-});
+exports.getAllTours = factory.getAll(Tour);
 
 // ANCHOR -- Get Tour By ID --
-exports.getTour = catchAsync(async (req, res, next) => {
-  // save the requested tour
-  const tour = await Tour.findById(req.params.id); // Tour.findOne({ _id: req.params.id})
-
-  // if the id was invalid, return an error
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  // send success response
-  res.status(200).json({
-    // JSent format response
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
 
 // ANCHOR -- Create Tour --
-exports.createTour = catchAsync(async (req, res, next) => {
-  // create a new document directly to the Tour model and save it to the const newTour
-  // must use await here since Tour.create returns a promise
-  const newTour = await Tour.create(req.body);
-
-  // send the response
-  res.status(201).json({
-    // JSent format response
-    status: 'success',
-    data: {
-      tour: newTour,
-    },
-  });
-});
+exports.createTour = factory.createOne(Tour);
 
 // ANCHOR -- Update Tour --
-exports.updateTour = catchAsync(async (req, res, next) => {
-  // search for the tour to update based on the ID input
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    // sets 'tour' equal to the updated data and not the original data
-    new: true,
-    // runs all of the validators set in the schema
-    runValidators: true, // this will re-run all validators in the schema when updating a document
-  });
-
-  // If searched-for ID comes up empty, return an error
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  // send success response
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+exports.updateTour = factory.updateOne(Tour);
 
 // ANCHOR -- Delete Tour --
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  // search for the tour to delete
-  const tour = await Tour.findByIdAndDelete(req.params.id);
-
-  // if no tour is found, return an error
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  // send success response
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+exports.deleteTour = factory.deleteOne(Tour);
 
 // ANCHOR -- Get Tour Stats --
 exports.getTourStats = catchAsync(async (req, res, next) => {

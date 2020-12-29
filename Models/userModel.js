@@ -58,7 +58,10 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// SECTION == MiddleWare ==
+// SECTION == Virtual Properties ==
+// !SECTION
+
+// SECTION == Document Middle-Ware ==
 
 // ANCHOR --  Password Hashing --
 userSchema.pre('save', async function (next) {
@@ -89,6 +92,10 @@ userSchema.pre('save', function (next) {
   next();
 });
 
+// !SECTION
+
+// SECTION == Query Middle-Ware ==
+
 // ANCHOR -- Remove Inactive Users From Query --
 // /^find/ - we use a regular expression here to include any function with the word 'find' in it
 // this will now run for find, findById, findByIdAndUpdate, etc.
@@ -97,6 +104,11 @@ userSchema.pre(/^find/, function (next) {
   this.find({ active: { $ne: false } });
   next();
 });
+
+// !SECTION
+
+// SECTION == Aggregation Middle-Ware ==
+// !SECTION
 
 // SECTION == Instance Methods ==
 
@@ -148,7 +160,7 @@ userSchema.methods.createPasswordResetToken = function () {
   return resetToken;
 };
 
-// SECTION == Model Creation ==
+// !SECTION
 
 // ANCHOR -- Create The User Model --
 const User = mongoose.model('User', userSchema);

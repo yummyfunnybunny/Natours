@@ -1,8 +1,21 @@
 // ANCHOR == Require Modules ==
 const User = require('../Models/userModel');
-const APIFeatures = require('../Utilities/apiFeatures');
 const catchAsync = require('../Utilities/catchAsync');
 const AppError = require('../Utilities/appError');
+const factory = require('./handlerFactory');
+// const APIFeatures = require('../Utilities/apiFeatures');
+
+// SECTION == Middle-Ware==
+
+// ANCHOR -- Get Me --
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
+
+// !SECTION
+
+// SECTION == FUNCTIONS ==
 
 // ANCHOR -- Filter Request --
 const filterObj = (reqBody, ...allowedFields) => {
@@ -22,19 +35,17 @@ const filterObj = (reqBody, ...allowedFields) => {
 };
 
 // ANCHOR -- Get All Users --
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  // await the finalquery to the new constant 'users'
-  const users = await User.find();
+exports.getAllUsers = factory.getAll(User);
 
-  // Send Response
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
+// ANCHOR -- Get User --
+exports.getUser = factory.getOne(User);
+
+// ANCHOR -- Update User --
+// do not update passwords with this!
+exports.updateUser = factory.updateOne(User);
+
+// ANCHOR -- Delete User --
+exports.deleteUser = factory.deleteOne(User);
 
 // ANCHOR -- Update Me --
 exports.updateMe = catchAsync(async (req, res, next) => {
@@ -80,30 +91,8 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: 'error',
-    message: 'This route is not yet defined...',
+    message: 'This route is not yet defined... Please use /signup',
   });
 };
 
-// ANCHOR -- Get User --
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined...',
-  });
-};
-
-// ANCHOR -- Update User --
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined...',
-  });
-};
-
-// ANCHOR -- Delete User --
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined...',
-  });
-};
+// !SECTION
