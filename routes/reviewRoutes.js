@@ -4,7 +4,7 @@ const reviewController = require('../controllers/reviewController');
 const authController = require('../controllers/authController');
 
 // ANCHOR -- Initialize Review Route --
-// set 'mergeParams: true' to activate re-routing nested routees
+// set 'mergeParams: true' to activate re-routing nested routes
 const router = express.Router({ mergeParams: true });
 
 // SECTION == Routes ==

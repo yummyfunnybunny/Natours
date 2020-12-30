@@ -91,7 +91,10 @@ const tourSchema = new mongoose.Schema(
         default: 'Point',
         enum: ['Point'],
       },
-      coordinates: [Number],
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+      },
       address: String,
       description: String,
     },
@@ -129,7 +132,7 @@ const tourSchema = new mongoose.Schema(
 // tourSchema.index({ price: 1 });
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
-tourSchema.index({ startLocation: '2dsphere' });
+tourSchema.index({ startLocation: '2dsphere' }); // geospatial data needs to be defined as either '2dsphere' or '2d'
 
 // !SECTION
 
@@ -226,11 +229,11 @@ tourSchema.pre(/^find/, function (next) {
 // SECTION == Aggregation Middle-Ware ==
 
 // ANCHOR -- Match --
-tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline());
+//   next();
+// });
 
 // !SECTION
 

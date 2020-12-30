@@ -42,11 +42,15 @@ router
     tourController.getMonthlyPlan
   );
 
+// ANCHOR -- Tours Within --
+//                                  {distance}   { latitude, longitude }{ unit of measurement }
+// url example: // /tours/tours-within/400/center/34.111745,-118.113491/unit/mi
 router
   .route('/tours-within/:distance/center/:latlng/unit/:unit')
   .get(tourController.getToursWithin);
-//  querystring version: /tours-distance?distance=233&center=-40,45&unit=miles
-// /tours-distance/233/center/-40,45/unit/mi
+
+// ANCHOR -- Get Distances --
+router.route('/distances/:latlng/unit/:unit').get(tourController.getDistances);
 
 // ANCHOR -- Get All Tours Route --
 router

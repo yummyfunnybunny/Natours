@@ -3,6 +3,7 @@
 // everything that is not related to express we will handle outside of app.js
 
 // ANCHOR -- Require Modules --
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -19,10 +20,18 @@ const reviewRouter = require('./routes/reviewRoutes');
 // ANCHOR -- Initialize Express --
 const app = express();
 
+// ANCHOR -- Initialize Template Engine --
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
 // you can call this to see the current environment mode
 console.log(`NODE_ENV: ${process.env.NODE_ENV}`); // environment variables accessed via 'process.env'
 
 // SECTION == Global Middle-Ware ==
+
+// ANCHOR -- serving static files --
+// app.use(express.static(`${__dirname}/public`));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ANCHOR -- Initialize Helmet --
 // security http headers
@@ -76,9 +85,6 @@ app.use(
   })
 );
 
-// serving static files
-app.use(express.static(`${__dirname}/public`));
-
 // ANCHOR -- Test Middleware --
 // calls a basic middleware that logs a message
 app.use((req, res, next) => {
@@ -97,6 +103,11 @@ app.use((req, res, next) => {
 // !SECTION
 
 // SECTION == Initialize Routers ==
+
+// ANCHOR -- View Routes --
+app.get('/', (req, res) => {
+  res.status(200).render('base');
+});
 
 // ANCHOR -- Mounted Routes --
 app.use('/api/v1/tours', tourRouter);

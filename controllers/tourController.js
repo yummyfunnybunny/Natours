@@ -96,8 +96,8 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     {
       $group: {
         _id: { $month: '$startDates' }, // group documents together by month
-        numTourStarts: { $sum: 1 }, // sums up the total number of tours starting in that month
-        tours: { $push: '$name' }, // creates a new array and uses the 'push' method to add to it
+        TotalToursThisMonth: { $sum: 1 }, // sums up the total number of tours starting in that month
+        toursList: { $push: '$name' }, // creates a new array and uses the 'push' method to add to it
       },
     },
     {
@@ -126,17 +126,20 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
 });
 
 // ANCHOR -- Get Tours Within --
-
-//  /tours-within/:distance/center/:latlng/unit/:unit
-// /tours-distance/233/center/-40,45/unit/mi
-
+// url example: // /tours/tours-within/400/center/34.111745,-118.113491/unit/mi
 exports.getToursWithin = catchAsync(async (req, res, next) => {
+  // destructure the url parameters into their own constants
   const { distance, latlng, unit } = req.params;
+
+  // destructure the latlng constant into an array of separated units
   const [lat, lng] = latlng.split(',');
 
-  // convert the distance provided into the mongoDB accepted unit 'radian'
+  // define the radius by converting the distance provided into the mongoDB accepted unit 'radian'
+  // Earth Radius in miles: 3963.2
+  // Earth radius in kilometers: 6378.1
   const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
 
+  // If lat/lng was not provided in correct format, throw an error
   if (!lat || !lng) {
     next(
       new AppError(
@@ -146,17 +149,77 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
     );
   }
 
-  console.log(distance, lat, lng, unit);
+  // check the variables if you want to...
+  // console.log(distance, lat, lng, unit);
 
+  // filter the tours based on the startLocation being within the desired distance
+  // '$geoWithin' is an operator like '$lt/$gte', but for geospatial data
   const tours = await Tour.find({
-    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+    startLocation: {
+      $geoWithin: {
+        // notice that longitude comes first in geoJSON, NOT latitude
+        $centerSphere: [[lng, lat], radius],
+      },
+    },
   });
 
+  // Send success response
   res.status(200).json({
     status: 'success',
     results: tours.length,
     data: {
       data: tours,
+    },
+  });
+});
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  // destructure the url parameters into their own constants
+  const { latlng, unit } = req.params;
+
+  // destructure the latlng constant into an array of separated units
+  const [lat, lng] = latlng.split(',');
+
+  // set the multipler to convert meters (default) to either miles or kilometers
+  const multipler = unit === 'mi' ? 0.000621371 : 0.001;
+
+  // If lat/lng was not provided in correct format, throw an error
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide  latitude and longitude in the format lat,lng.',
+        400
+      )
+    );
+  }
+
+  const distances = await Tour.aggregate([
+    // only one single stage for geospatial aggregation:
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          // we have to multiply each const by 1 to turn them from a string to a number
+          // req.params is a string
+          coordinates: [lng * 1, lat * 1],
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multipler,
+      },
+    },
+    {
+      $project: {
+        distance: 1,
+        name: 1,
+      },
+    },
+  ]);
+
+  // Send success response
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
     },
   });
 });

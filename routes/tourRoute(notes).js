@@ -25,7 +25,11 @@ router // this route is now named after the sub-route name we created in step 1 
   .get(tourController.getAllTours)
   .post(tourController.checkBody, tourController.createTour); // here we called two functions in one post. COOL!
 
-router.route('/:id').get(tourController.getTour).patch(tourController.updateTour).delete(tourController.deleteTour);
+router
+  .route('/:id')
+  .get(tourController.getTour)
+  .patch(tourController.updateTour)
+  .delete(tourController.deleteTour);
 
 // NOTE: since the functions are now coming from the 'toursController' object that we required at the top,
 // all of these functions simply need the 'tourController.' infromt of the function name
