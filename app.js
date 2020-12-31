@@ -16,6 +16,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewsRoutes');
 
 // ANCHOR -- Initialize Express --
 const app = express();
@@ -102,24 +103,18 @@ app.use((req, res, next) => {
 
 // !SECTION
 
-// SECTION == Initialize Routers ==
-
-// ANCHOR -- View Routes --
-app.get('/', (req, res) => {
-  res.status(200).render('base');
-});
-
 // ANCHOR -- Mounted Routes --
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
+
+// !SECTION
 
 // ANCHOR -- Handle Unhandled Routes --
 app.all('*', (req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server 🐟`, 404));
 });
-
-// !SECTION
 
 // ANCHOR --  Global Error Handler --
 app.use(globalErrorHandler);
