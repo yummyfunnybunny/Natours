@@ -1,8 +1,14 @@
+//- ANCHOR -- Extends & Includes --
 extends base
 include _reviewCard
 
+block append head
+  script(src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js')
+  link(href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet')
 
+//- SECTION == Mixins == 
 
+//- ANCHOR -- OverviewBox --
 mixin overviewBox(description, text, icon)
   .overview-box__detail
     svg.overview-box__icon
@@ -10,8 +16,12 @@ mixin overviewBox(description, text, icon)
     span.overview-box__label= description
     span.overview-box__text= text 
 
+//- !SECTION
 
+//- ANCHOR -- Block -- 
 block content
+
+  //- Hero Section
   section.section-header
     .header__hero
       .header__hero-overlay &nbsp;
@@ -30,49 +40,63 @@ block content
             use(xlink:href='/img/icons.svg#icon-map-pin')
           span.heading-box__text= tour.startLocation.description
 
+  //- Quick Facts & Description
   section.section-description
     .overview-box
       div
         .overview-box__group
           h2.heading-secondary.ma-bt-lg Quick facts
 
+          //- NOTE use the overviewBox mixin to generate the below 4 elements
           - const date = tour.startDates[0].toLocaleString('en-us', {month: 'long', year: 'numeric'});
           +overviewBox('Next date', date, 'calendar')
           +overviewBox('Difficulty', tour.difficulty, 'trending-up')
           +overviewBox('Participants', `${tour.maxGroupSize} people`, 'user')
           +overviewBox('Rating', `${tour.ratingsAverage} / 5`, 'star')
 
+        //- Tour Guides
         .overview-box__group
           h2.heading-secondary.ma-bt-lg Your tour guides
 
+          //- loop through the guides array and display each one
           each guide in tour.guides
             .overview-box__detail
+
+              //- set the image of the guide
               img.overview-box__img(src=`/img/users/${guide.photo}`, alt=`${guide.name}`)
 
+              //- Display either 'Lead Guide' or 'Tour Guide', depending on the 'role' field
+              //- NOTE we are using 'Conditionals' here. Basically if statements for pug
               - if (guide.role === 'lead-guide')
                 span.overview-box__label Lead Guide
               - if (guide.role === 'guide')
                 span.overview-box__label Tour Guide
               span.overview-box__text= guide.name
 
+    //- About
     .description-box
       h2.heading-secondary.ma-bt-lg= `About ${tour.name} tour`
       - const paragraphs =  tour.description.split('\n');
       each p in paragraphs
         p.description__text= p
 
+  //- Pictures
   section.section-pictures
     each img, i in tour.images
       .picture-box
         img.picture-box__img(src=`/img/tours/${img}`, alt=`The Park Camper Tour ${i + 1}`, class=`picture-box__img--${i + 1}`)
 
+  //- Map
   section.section-map
-    #map
+    #map(data-locations=`${JSON.stringify(tour.locations)}`)
 
+  //- Reviews
   section.section-reviews
     .reviews
-  each review in tour.reviews
-    +reviewCard(review)
+      each review in tour.reviews
+        +reviewCard(review)
+
+  //- Call To Action
   section.section-cta
     .cta
       .cta__img.cta__img--logo

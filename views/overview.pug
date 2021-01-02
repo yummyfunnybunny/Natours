@@ -1,10 +1,12 @@
+//- ANCHOR -- Extends & Includes --
 extends base
 
+//- ANCHOR -- Block -- 
 block content
   main.main
     .card-container   
 
-      //- this is a built in loop function you can use to iterate through a list of identical stuff and render them
+      //- NOTE this is a built in loop function you can use to iterate through a list of identical stuff and render them
       //- tour = the current iteration through the loop. you can name this whatever you want
       //- tours = the object that we passed into the the res.render of the viewsController
       each tour in tours  
