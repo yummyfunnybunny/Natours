@@ -8,9 +8,11 @@ const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const csp = require('express-csp');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
 const AppError = require('./Utilities/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
@@ -37,6 +39,143 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ANCHOR -- Initialize Helmet --
 // security http headers
 app.use(helmet());
+// --------------------
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: {
+//       directives: {
+//         defaultSrc: ["'self'", 'data:', 'blob:', 'https:', 'ws:'],
+//         baseUri: ["'self'"],
+//         fontSrc: ["'self'", 'https:', 'data:'],
+//         scriptSrc: [
+//           "'self'",
+//           'https:',
+//           'http:',
+//           'blob:',
+//           'https://*.mapbox.com',
+//           'https://js.stripe.com',
+//           'https://m.stripe.network',
+//           'https://*.cloudflare.com',
+//         ],
+//         frameSrc: ["'self'", 'https://js.stripe.com'],
+//         objectSrc: ["'none'"],
+//         styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
+//         workerSrc: [
+//           "'self'",
+//           'data:',
+//           'blob:',
+//           'https://*.tiles.mapbox.com',
+//           'https://api.mapbox.com',
+//           'https://events.mapbox.com',
+//           'https://m.stripe.network',
+//         ],
+//         childSrc: ["'self'", 'blob:'],
+//         imgSrc: ["'self'", 'data:', 'blob:'],
+//         formAction: ["'self'"],
+//         connectSrc: [
+//           "'self'",
+//           "'unsafe-inline'",
+//           'data:',
+//           'blob:',
+//           'https://*.stripe.com',
+//           'https://*.mapbox.com',
+//           'https://*.cloudflare.com/',
+//           'https://bundle.js:*',
+//           'ws://127.0.0.1:*/',
+//         ],
+//         upgradeInsecureRequests: [],
+//       },
+//     },
+//   })
+// );
+// --------------------
+// app.use(
+//   helmet.contentSecurityPolicy({
+//     directives: {
+//       defaultSrc: ["'self'", 'https://*.mapbox.com', 'https://*.stripe.com'],
+//       baseUri: ["'self'"],
+//       fontSrc: ["'self'", 'https:', 'data:'],
+//       imgSrc: ["'self'", 'https://www.gstatic.com'],
+//       scriptSrc: [
+//         "'self'",
+//         'https://*.stripe.com',
+//         'https://cdnjs.cloudflare.com',
+//         'https://api.mapbox.com',
+//         'https://js.stripe.com',
+//         "'blob'",
+//       ],
+//       frameSrc: ["'self'", 'https://*.stripe.com'],
+//       objectSrc: ["'none'"],
+//       upgradeInsecureRequests: [],
+//     },
+//   })
+// );
+
+// csp.extend(app, {
+//   policy: {
+//     directives: {
+//       'default-src': ['self'],
+//       'style-src': ['self', 'unsafe-inline', 'https:'],
+//       'font-src': ['self', 'https://fonts.gstatic.com'],
+//       'script-src': [
+//         'self',
+//         'unsafe-inline',
+//         'data',
+//         'blob',
+//         'https://js.stripe.com',
+//         'https://*.mapbox.com',
+//         'https://*.cloudflare.com/',
+//         'https://bundle.js:8828',
+//         'ws://localhost:56558/',
+//       ],
+//       'worker-src': [
+//         'self',
+//         'unsafe-inline',
+//         'data:',
+//         'blob:',
+//         'https://*.stripe.com',
+//         'https://*.mapbox.com',
+//         'https://*.cloudflare.com/',
+//         'https://bundle.js:*',
+//         'ws://localhost:*/',
+//       ],
+//       'frame-src': [
+//         'self',
+//         'unsafe-inline',
+//         'data:',
+//         'blob:',
+//         'https://*.stripe.com',
+//         'https://*.mapbox.com',
+//         'https://*.cloudflare.com/',
+//         'https://bundle.js:*',
+//         'ws://localhost:*/',
+//       ],
+//       'img-src': [
+//         'self',
+//         'unsafe-inline',
+//         'data:',
+//         'blob:',
+//         'https://*.stripe.com',
+//         'https://*.mapbox.com',
+//         'https://*.cloudflare.com/',
+//         'https://bundle.js:*',
+//         'ws://localhost:*/',
+//       ],
+//       'connect-src': [
+//         'self',
+//         'unsafe-inline',
+//         'data:',
+//         'blob:',
+//         // 'wss://<HEROKU-SUBDOMAIN>.herokuapp.com:<PORT>/',
+//         'https://*.stripe.com',
+//         'https://*.mapbox.com',
+//         'https://*.cloudflare.com/',
+//         'https://bundle.js:*',
+//         'ws://localhost:*/',
+//       ],
+//     },
+//   },
+// });
 
 // ANCHOR -- Initialize Morgan --
 //check the environment mode before running morgan
@@ -56,9 +195,10 @@ const limiter = rateLimit({
 // how intialize the limiter with all routes with '/api' in it
 app.use('/api', limiter); // app.use(route,limiter);
 
-// ANCHOR -- Body Parser --
+// ANCHOR -- Body/Cookie Parsers --
 // body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' })); // sets the limit of the body to 10kb
+app.use(cookieParser());
 
 // ANCHOR -- Data Sanitization --
 
@@ -98,6 +238,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   //console.log(req.headers); // get access to the headers in express
+  console.log(req.cookies);
   next();
 });
 
