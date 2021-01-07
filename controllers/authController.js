@@ -93,6 +93,17 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+// ANCHOR -- Logout User --
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({
+    status: 'success',
+  });
+};
+
 // ANCHOR -- Protect --
 exports.protect = catchAsync(async (req, res, next) => {
   // 1) - check if JWT exists -
@@ -102,6 +113,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+
+    // check for a jwt in the cookies
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
   }
@@ -138,9 +151,44 @@ exports.protect = catchAsync(async (req, res, next) => {
   console.log(req.user);
   // 5) - grant access to protected route -
   req.user = freshUser; // we do this line because the req.user is what gets passed from middleware to middleware
+  res.locals.user = freshUser;
   console.log(req.user);
   next();
 });
+
+// ANCHOR -- Is Logged In --
+// only for rendered pages, no errors!
+exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      // 1) verify token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+      // console.log(decoded); // output: { _id, iat, exp } - id of document, issued at, expires at
+
+      // 2) - check if user still exists -
+      const freshUser = await User.findById(decoded._id);
+      if (!freshUser) {
+        return next();
+      }
+
+      // 3) - Check if user changed password after the token was issued -
+      if (freshUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      // 4) - there is a logged in user
+      res.locals.user = freshUser; // all pug templates have access to 'res.locals'
+      return next();
+    } catch (err) {
+      return next();
+    }
+  }
+  // there is no logged in user, call 'next'
+  next();
+};
 
 // ANCHOR -- Restrict access --
 exports.restrictTo = (...roles) => {

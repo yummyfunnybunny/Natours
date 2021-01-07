@@ -2,7 +2,7 @@ doctype html
 html(lang='en')
   head
     block head
-    //- meta(http-equiv="Content-security-Policy" content="default-src 'self'; script-src *")
+    //- meta(http-equiv="Content-Security-Policy" content="default-src * 'unsafe-eval' 'unsafe-inline'; script-src 'self'; img-src 'self' data:")
     meta(charset='UTF-8')
     meta(name='viewport' content='width=device-width, initial-scale=1.0')
     link(rel='stylesheet', href='/css/style.css')
@@ -21,10 +21,12 @@ html(lang='en')
     // FOOTER
     include _footer
 
-    //- script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0-0/axios.min.js')
-    script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js')
-    script(src='/js/mapbox.js')
-    script(src='/js/login.js')
+    //- script(script-src-elem='https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0-0/axios.min.js')
+    //- script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js')
+    //- script(script-src-elem='https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js')
+    //- script(src='/js/mapbox.js')
+    //- script(src='/js/login.js')
+    script(src='/js/bundle.js')
 
 
 
