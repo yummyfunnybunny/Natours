@@ -47,56 +47,6 @@ app.use(
 // ANCHOR -- Initialize Helmet --
 // security http headers
 // app.use(helmet());
-// --------------------
-// app.use(
-//   helmet({
-//     contentSecurityPolicy: {
-//       directives: {
-//         defaultSrc: ["'self'", 'data:', 'blob:', 'https:', 'ws:'],
-//         baseUri: ["'self'"],
-//         fontSrc: ["'self'", 'https:', 'data:'],
-//         scriptSrc: [
-//           "'self'",
-//           'https:',
-//           'http:',
-//           'blob:',
-//           'https://*.mapbox.com',
-//           'https://js.stripe.com',
-//           'https://m.stripe.network',
-//           'https://*.cloudflare.com',
-//         ],
-//         frameSrc: ["'self'", 'https://js.stripe.com'],
-//         objectSrc: ["'none'"],
-//         styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
-//         workerSrc: [
-//           "'self'",
-//           'data:',
-//           'blob:',
-//           'https://*.tiles.mapbox.com',
-//           'https://api.mapbox.com',
-//           'https://events.mapbox.com',
-//           'https://m.stripe.network',
-//         ],
-//         childSrc: ["'self'", 'blob:'],
-//         imgSrc: ["'self'", 'data:', 'blob:'],
-//         formAction: ["'self'"],
-//         connectSrc: [
-//           "'self'",
-//           "'unsafe-inline'",
-//           'data:',
-//           'blob:',
-//           'https://*.stripe.com',
-//           'https://*.mapbox.com',
-//           'https://*.cloudflare.com/',
-//           'https://bundle.js:*',
-//           'ws://127.0.0.1:*/',
-//         ],
-//         upgradeInsecureRequests: [],
-//       },
-//     },
-//   })
-// );
-// --------------------
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -108,7 +58,7 @@ app.use(
         "'self'",
         'https://*.stripe.com',
         'https://cdnjs.cloudflare.com',
-        // 'https://api.mapbox.com',
+        'https://api.mapbox.com',
         'https://*.mapbox.com',
         'https://js.stripe.com',
         "'blob'",
@@ -119,19 +69,7 @@ app.use(
     },
   })
 );
-// ------------------------
-// app.use(
-//   helmet.contentSecurityPolicy({
-//     directives: {
-//       defaultSrc: ["'self'", 'https:', 'http:', 'data:', 'ws:'],
-//       baseUri: ["'self'"],
-//       fontSrc: ["'self'", 'https:', 'http:', 'data:'],
-//       scriptSrc: ["'self'", 'https:', 'http:', 'blob:'],
-//       styleSrc: ["'self'", "'unsafe-inline'", 'https:', 'http:'],
-//     },
-//   })
-// );
-// ------------------------
+
 csp.extend(app, {
   policy: {
     directives: {
@@ -216,9 +154,10 @@ const limiter = rateLimit({
 // how intialize the limiter with all routes with '/api' in it
 app.use('/api', limiter); // app.use(route,limiter);
 
-// ANCHOR -- Body/Cookie Parsers --
+// ANCHOR -- Parsers --
 // body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' })); // sets the limit of the body to 10kb
+app.use(express.urlencoded({ extended: true, limit: '10kb' })); // this allows us to parse data coming from a url-encoded HTML form
 app.use(cookieParser());
 
 // ANCHOR -- Data Sanitization --

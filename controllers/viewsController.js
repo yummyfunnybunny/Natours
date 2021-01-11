@@ -1,5 +1,6 @@
 // ANCHOR -- Require Modules --
 const Tour = require('../Models/tourModel');
+const User = require('../Models/userModel');
 const catchAsync = require('../Utilities/catchAsync');
 const AppError = require('../Utilities/appError');
 
@@ -31,8 +32,6 @@ exports.getTour = catchAsync(async (req, res, next) => {
   if (!tour) {
     return next(new AppError('There is no tour with that name.', 404));
   }
-  // 2) build Template
-
   // 3) Render template using data from step 1
   res
     .status(200)
@@ -68,5 +67,24 @@ exports.getAccount = (req, res) => {
     title: 'Your Account',
   });
 };
+
+exports.updateUserData = catchAsync(async (req, res, next) => {
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user.id,
+    {
+      name: req.body.name,
+      email: req.body.email,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  res.status(200).render('account', {
+    title: 'Your account',
+    user: updatedUser,
+  });
+});
 
 // !SECTION
