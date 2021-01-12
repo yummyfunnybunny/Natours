@@ -154,7 +154,7 @@ const limiter = rateLimit({
 // how intialize the limiter with all routes with '/api' in it
 app.use('/api', limiter); // app.use(route,limiter);
 
-// ANCHOR -- Parsers --
+// ANCHOR -- Initialize Parsers --
 // body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' })); // sets the limit of the body to 10kb
 app.use(express.urlencoded({ extended: true, limit: '10kb' })); // this allows us to parse data coming from a url-encoded HTML form
@@ -198,7 +198,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   //console.log(req.headers); // get access to the headers in express
-  console.log(req.cookies);
+  // console.log(req.cookies);
   next();
 });
 

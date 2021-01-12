@@ -2,9 +2,11 @@
 import axios from 'axios';
 import { showAlert } from './alerts';
 
+// ANCHOR -- Update Account Info --
 // type is either 'password' or 'data'
 export const updateSettings = async (data, type) => {
   try {
+    // Set the url based on the 'type' parameter
     const url =
       type === 'password'
         ? 'http://localhost:3000/api/v1/users/updateMyPassword'
