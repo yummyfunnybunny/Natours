@@ -8657,7 +8657,11 @@ var updateSettings = /*#__PURE__*/function () {
             res = _context.sent;
 
             if (res.data.status === 'success') {
-              (0, _alerts.showAlert)('success', "".concat(type.toUpperCase(), " updated successfully!"));
+              (0, _alerts.showAlert)('success', "".concat(type.toUpperCase(), " updated successfully!")); // refresh the window aftert 1 second once the data was updated successfully
+
+              window.setTimeout(function () {
+                location.reload();
+              }, 1000);
             }
 
             _context.next = 11;
@@ -8981,13 +8985,14 @@ if (logOutBtn) {
 
 if (userDataForm) {
   userDataForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var name = document.getElementById('name').value;
-    var email = document.getElementById('email').value;
-    (0, _updateSettings.updateSettings)({
-      name: name,
-      email: email
-    }, 'data');
+    e.preventDefault(); // create a FormData object that we can use to append multiple types of data to
+
+    var form = new FormData();
+    form.append('name', document.getElementById('name').value);
+    form.append('email', document.getElementById('email').value);
+    form.append('photo', document.getElementById('photo').files[0]);
+    console.log(form);
+    (0, _updateSettings.updateSettings)(form, 'data');
   });
 }
 
@@ -9063,7 +9068,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54817" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64804" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

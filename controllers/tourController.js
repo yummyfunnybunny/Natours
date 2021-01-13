@@ -1,10 +1,81 @@
 // ANCHOR -- Require Modules --
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('../Models/tourModel');
 const catchAsync = require('../Utilities/catchAsync');
 const factory = require('./handlerFactory');
 const AppError = require('../Utilities/appError');
 
+// ANCHOR -- Setup Multer --
+const multerStorage = multer.memoryStorage();
+
+// 2) Create the Multer Filter
+const multerFilter = (req, file, callback) => {
+  if (file.mimetype.startsWith('image')) {
+    callback(null, true);
+  } else {
+    callback(
+      new AppError('Not an image! Please upload an image file only.', 400),
+      false
+    );
+  }
+};
+
+// 3) Initialize multer using the 'multerStorage' object and the 'multerFilter' function that we intitialized above
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
 // SECTION == Middleware ==
+
+// ANCHOR -- Upload Tour Images --
+exports.uploadTourImages = upload.fields([
+  {
+    name: 'imageCover',
+    maxCount: 1,
+  },
+  {
+    name: 'images',
+    maxCount: 3,
+  },
+]);
+// use the below syntax if you are uploading multiple files but to only one fiels
+// in the above example, if we only had the field named 'images', than we could set it up like this:
+// upload.array('images', 3);
+
+// ANCHOR -- Resize Tour Images --
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  // skip to next middleware if there is no imageCover or images
+  if (!req.files.imageCover || !req.files.images) return next();
+
+  // 1) Process Cover Image
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${req.body.imageCover}`);
+
+  // 2) Process regular Images
+  req.body.images = [];
+
+  await Promise.all(
+    req.files.images.map(async (file, i) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`);
+
+      req.body.images.push(filename);
+    })
+  );
+  next();
+});
 
 // ANCHOR -- Alias Top Tours --
 // manupulates the get request to create a sort of default query

@@ -1,11 +1,8 @@
 // ANCHOR -- Require Modules --
 const express = require('express');
-const multer = require('multer');
+
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
-
-// ANCHOR -- Initialize Multer --
-const upload = multer({ dest: 'public/img/users' });
 
 // ANCHOR -- Initialize Router --
 const router = express.Router();
@@ -25,7 +22,12 @@ router.use(authController.protect);
 
 router.patch('/updateMyPassword', authController.updatePassword);
 router.get('/Me', userController.getMe, userController.getUser);
-router.patch('/updateMe', upload.single('photo'), userController.updateMe);
+router.patch(
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.resizeUserPhoto,
+  userController.updateMe
+);
 router.delete('/deleteMe', userController.deleteMe);
 
 // ANCHOR -- Restrict Routes --

@@ -20,6 +20,11 @@ export const updateSettings = async (data, type) => {
 
     if (res.data.status === 'success') {
       showAlert('success', `${type.toUpperCase()} updated successfully!`);
+
+      // refresh the window aftert 1 second once the data was updated successfully
+      window.setTimeout(() => {
+        location.reload();
+      }, 1000);
     }
   } catch (err) {
     showAlert('error', err.response.data.message);
