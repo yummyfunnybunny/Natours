@@ -14,6 +14,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 const AppError = require('./Utilities/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
@@ -30,7 +31,7 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
 // you can call this to see the current environment mode
-console.log(`NODE_ENV: ${process.env.NODE_ENV}`); // environment variables accessed via 'process.env'
+// console.log(`NODE_ENV: ${process.env.NODE_ENV}`); // environment variables accessed via 'process.env'
 
 // SECTION == Global Middle-Ware ==
 
@@ -242,10 +243,13 @@ app.use(
   })
 );
 
+// ANCHOR -- Compression --
+app.use(compression());
+
 // ANCHOR -- Test Middleware --
 // calls a basic middleware that logs a message
 app.use((req, res, next) => {
-  console.log('Hello from the middleware!');
+  // console.log('Hello from the middleware!');
   next();
 });
 

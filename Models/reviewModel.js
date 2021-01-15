@@ -80,7 +80,7 @@ reviewSchema.pre(/^find/, function (next) {
 // this function to find the document we are working with in order to gain access to it
 reviewSchema.pre(/^findOneAnd/, async function (next) {
   this.review = await this.findOne();
-  console.log(this.review);
+  // console.log(this.review);
   next();
 });
 

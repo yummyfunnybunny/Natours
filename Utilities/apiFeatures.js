@@ -11,7 +11,7 @@ class APIFeatures {
 
   // ANCHOR -- Filter Function --
   filter() {
-    console.log(this.queryString);
+    // console.log(this.queryString);
     // create a hard copy of the query by using destructuring within a newly created object
     // so we dont altar the original query object
     const preQuery = { ...this.queryString };

@@ -74,7 +74,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
   // 2) check if user exists and if password is correct
   const user = await User.findOne({ email: email }).select('password');
-  console.log(user);
+  // console.log(user);
   // if user not not exist, or if the passwords don't match
   // we put the password check inside of this if/else statement because otherwise we'd get
   // an error if the user did not exist, due to the password check requiring a valid user
@@ -143,11 +143,11 @@ exports.protect = catchAsync(async (req, res, next) => {
       )
     );
   }
-  console.log(req.user);
+  // console.log(req.user);
   // 5) - grant access to protected route -
   req.user = freshUser; // we do this line because the req.user is what gets passed from middleware to middleware
   res.locals.user = freshUser;
-  console.log(req.user);
+  // console.log(req.user);
   next();
 });
 
@@ -280,7 +280,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 // ANCHOR -- Update Password --
 exports.updatePassword = catchAsync(async (req, res, next) => {
   // 1) Get the user from COLLECTION
-  console.log(req.body);
+  // console.log(req.body);
   const user = await User.findOne(req.user._id).select('+password');
 
   // 2) Check if POSTed password is correct

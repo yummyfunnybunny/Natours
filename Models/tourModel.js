@@ -208,11 +208,11 @@ tourSchema.pre(/^find/, function (next) {
 
 // ANCHOR -- Query Timer --
 // since this query middle-ware is the .post() method, it has access to the 'docs' (completed documents)
-tourSchema.post(/^find/, function (docs, next) {
-  console.log(`Query took ${Date.now() - this.start} milliseconds!`);
-  //console.log(docs);
-  next();
-});
+// tourSchema.post(/^find/, function (docs, next) {
+//   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
+//   //console.log(docs);
+//   next();
+// });
 
 // ANCHOR -- Populate The Guides documents being referenced --
 // this is what populates the user data inside of the tour model (data modeling)
