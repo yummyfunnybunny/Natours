@@ -14,7 +14,9 @@ const fs = require('fs');
 // c: 3rd party modules
 
 //save the json file 'tours-simple' into a JSON-parsed variable (no longer need)
-const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`));
+const tours = JSON.parse(
+  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
+);
 
 // CONTROLLERS (route handlers)
 // ------------------------------------
@@ -104,16 +106,20 @@ exports.createTour = (req, res) => {
   // write the 'tours-simple' database to the server
   // when sending data to a web server, the data has to be a string, so we use 'JSON.stringify' to turn the 'tours'
   // array into a string before finalizing the post request
-  fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`, JSON.stringify(tours), (err) => {
-    // status 201 = "created" - we just 'created' a new tour, so this is appropriate
-    res.status(201).json({
-      //  once again, we use the JSent format
-      status: 'success',
-      data: {
-        tour: newTour,
-      },
-    });
-  });
+  fs.writeFile(
+    `${__dirname}/dev-data/data/tours-simple.json`,
+    JSON.stringify(tours),
+    (err) => {
+      // status 201 = "created" - we just 'created' a new tour, so this is appropriate
+      res.status(201).json({
+        //  once again, we use the JSent format
+        status: 'success',
+        data: {
+          tour: newTour,
+        },
+      });
+    }
+  );
 
   // must have a response of some kind to complete the request/response cycle
   // res.send("Done");

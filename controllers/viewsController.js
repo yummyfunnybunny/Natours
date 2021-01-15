@@ -1,6 +1,7 @@
 // ANCHOR -- Require Modules --
 const Tour = require('../Models/tourModel');
 const User = require('../Models/userModel');
+const Booking = require('../Models/bookingModel');
 const catchAsync = require('../Utilities/catchAsync');
 const AppError = require('../Utilities/appError');
 
@@ -35,10 +36,10 @@ exports.getTour = catchAsync(async (req, res, next) => {
   // 3) Render template using data from step 1
   res
     .status(200)
-    .set(
-      'Content-Security-Policy',
-      "default-src 'self' https://*.mapbox.com ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com https://api.mapbox.com 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
-    )
+    // .set(
+    //   'Content-Security-Policy',
+    //   "default-src 'self' https://*.mapbox.com ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com https://api.mapbox.com 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
+    // )
     .render('tour', {
       title: `${tour.name} Tour`,
       tour: tour,
@@ -63,6 +64,26 @@ exports.getAccount = (req, res) => {
     title: 'Your Account',
   });
 };
+
+// ANCHOR -- Get My Tours --
+// retreives all tours that the current user has booked, and than renders a page identical to the
+// overview page, but will only show the tours that the logged-in user has booked
+// TODO -- This can greatly be built upon to make better. honestly the way this was done in the lecture
+// is pretty stupid
+// TODO -- can also perform this exact same function using virtual populate (according to Jonas)
+exports.getMyTours = catchAsync(async (req, res, next) => {
+  // 1) find all bookings
+  const bookings = await Booking.find({ user: req.user.id });
+
+  // 2) find tours with the returned IDs
+  const tourIDs = bookings.map((el) => el.tour);
+  const tours = await Tour.find({ _id: { $in: tourIDs } });
+
+  res.status(200).render('overview', {
+    title: 'My Tours',
+    tours: tours,
+  });
+});
 
 exports.updateUserData = catchAsync(async (req, res, next) => {
   const updatedUser = await User.findByIdAndUpdate(

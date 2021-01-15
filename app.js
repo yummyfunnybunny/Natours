@@ -19,6 +19,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const bookingRouter = require('./routes/bookingRoutes');
 const viewRouter = require('./routes/viewsRoutes');
 
 // ANCHOR -- Initialize Express --
@@ -47,25 +48,76 @@ app.use(
 // ANCHOR -- Initialize Helmet --
 // security http headers
 // app.use(helmet());
+// ---------------------------
+// app.use(
+//   helmet.contentSecurityPolicy({
+//     directives: {
+//       defaultSrc: ["'self'", 'https://*.mapbox.com', 'https://*.stripe.com'],
+//       baseUri: ["'self'"],
+//       fontSrc: ["'self'", 'https:', 'data:'],
+//       imgSrc: ["'self'", 'https://www.gstatic.com'],
+//       scriptSrc: [
+//         "'self'",
+//         'https://*.stripe.com',
+//         'https://cdnjs.cloudflare.com',
+//         'https://api.mapbox.com',
+//         'https://*.mapbox.com',
+//         'https://js.stripe.com',
+//         "'blob'",
+//       ],
+//       frameSrc: ["'self'", 'https://*.stripe.com'],
+//       objectSrc: ["'none'"],
+//       upgradeInsecureRequests: [],
+//     },
+//   })
+// );
+// -------------------------------
 app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'", 'https://*.mapbox.com', 'https://*.stripe.com'],
-      baseUri: ["'self'"],
-      fontSrc: ["'self'", 'https:', 'data:'],
-      imgSrc: ["'self'", 'https://www.gstatic.com'],
-      scriptSrc: [
-        "'self'",
-        'https://*.stripe.com',
-        'https://cdnjs.cloudflare.com',
-        'https://api.mapbox.com',
-        'https://*.mapbox.com',
-        'https://js.stripe.com',
-        "'blob'",
-      ],
-      frameSrc: ["'self'", 'https://*.stripe.com'],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: [],
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'", 'data:', 'blob:', 'https:', 'ws:'],
+        baseUri: ["'self'"],
+        fontSrc: ["'self'", 'https:', 'data:'],
+        scriptSrc: [
+          "'self'",
+          'https:',
+          'http:',
+          'blob:',
+          'https://*.stripe.com',
+          'https://*.mapbox.com',
+          'https://js.stripe.com',
+          'https://m.stripe.network',
+          'https://*.cloudflare.com',
+        ],
+        frameSrc: ["'self'", 'https://js.stripe.com'],
+        objectSrc: ["'none'"],
+        styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
+        workerSrc: [
+          "'self'",
+          'data:',
+          'blob:',
+          'https://*.tiles.mapbox.com',
+          'https://api.mapbox.com',
+          'https://events.mapbox.com',
+          'https://m.stripe.network',
+        ],
+        childSrc: ["'self'", 'blob:'],
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        formAction: ["'self'"],
+        connectSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'data:',
+          'blob:',
+          'https://*.stripe.com',
+          'https://*.mapbox.com',
+          'https://*.cloudflare.com/',
+          'https://bundle.js:*',
+          'ws://127.0.0.1:*/',
+        ],
+        upgradeInsecureRequests: [],
+      },
     },
   })
 );
@@ -81,7 +133,9 @@ csp.extend(app, {
         'unsafe-inline',
         'data',
         'blob',
+        'https://m.stripe.network',
         'https://js.stripe.com',
+        'https://*.stripe.com',
         'https://*.mapbox.com',
         'https://*.cloudflare.com/',
         'https://bundle.js:8828',
@@ -92,6 +146,7 @@ csp.extend(app, {
         'unsafe-inline',
         'data:',
         'blob:',
+        'https://m.stripe.network',
         'https://*.stripe.com',
         'https://*.mapbox.com',
         'https://*.cloudflare.com/',
@@ -103,6 +158,7 @@ csp.extend(app, {
         'unsafe-inline',
         'data:',
         'blob:',
+        'https://js.stripe.com',
         'https://*.stripe.com',
         'https://*.mapbox.com',
         'https://*.cloudflare.com/',
@@ -209,6 +265,7 @@ app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/bookings', bookingRouter);
 
 // !SECTION
 
@@ -222,3 +279,29 @@ app.use(globalErrorHandler);
 
 // ANCHOR -- Export --
 module.exports = app;
+
+// TODO
+/*
+could have added more business logic to the project:
+- Adding a restriction so users can only review tours that they have actually booked
+- implemented nested booking routes: /tours/:id/bookings -OR- /users/:id/bookings
+- improve tour dates: 
+  - add particiants and soldout field to each date.
+  - a date than becomes like an instance of the tour.
+  - then, when a user books a tour, they need to select one of the dates.
+  - a new booking will increase the number of participants in the date, until it is fully booked.
+  - so when a user wants to book, there must be a slot left in that date instance for the user to move forward.
+- implement advanced authentication feaures:
+  - confirm user email for a 2-part signup authentication process
+  - keep users logged in with refresh tokens
+  - 2-factor authentication (text message on phone with code)
+
+front-end additions:
+ - create a signup form (very similar to login form)
+ - on the tour detail page, if a user has taken a tour, allow them to add a review directly on the website with a form
+ - hide the entire booking section on the tour detail page if the current user has already booked the tour
+ - also prevent duplicate bookings on the model (very similar to what we did with stopping duplicate reviews)
+ - implement 'like tour' functionality
+ - create the 'my reviews' page, which has a button on the left side of the accounts panal already
+ - for ADMINISTRATORS: create all of the "manage" pages, where they can CRUD tours, users, reviews, and bookings
+*/

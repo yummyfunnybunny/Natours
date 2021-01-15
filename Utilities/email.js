@@ -18,7 +18,7 @@ module.exports = class Email {
   // create different transports for different environments
   newTransport() {
     if (process.env.NODE_ENV === 'production') {
-      // Production Mode Use SendGrid:
+      // Production Mode: [SendGrid]
       return nodemailer.createTransport({
         service: 'SendGrid',
         auth: {
@@ -27,7 +27,7 @@ module.exports = class Email {
         },
       });
     }
-    // Development Mode: Use MailTrap
+    // Development Mode: [MailTrap]
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
@@ -52,8 +52,8 @@ module.exports = class Email {
 
     // B) Define email options
     const mailOptions = {
-      // from: this.from,
-      from: process.env.SENDGRID_EMAIL_FROM,
+      from: this.from,
+      // from: process.env.SENDGRID_EMAIL_FROM,
       to: this.to,
       subject: subject,
       html: html,
