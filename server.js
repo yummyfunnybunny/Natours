@@ -64,3 +64,12 @@ process.on('unhandledRejection', (err) => {
     process.exit(1);
   });
 });
+
+// ANCHOR -- Handle SIGTERM Signal --
+// this will gracefully shutdown the server whenever heroku sends its scheduled SIGTERM signal to the application
+process.on('SIGTERM', () => {
+  console.log('SIGTERM RECEIVED. Shutting down gracefully! 💃');
+  server.close(() => {
+    console.log('💥 Process terminated! 💥');
+  });
+});

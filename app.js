@@ -26,6 +26,10 @@ const viewRouter = require('./routes/viewsRoutes');
 // ANCHOR -- Initialize Express --
 const app = express();
 
+// ANCHOR -- Enable Proxy --
+// this is necessary for heroku to work
+app.enable('trust proxy');
+
 // ANCHOR -- Initialize Template Engine --
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));

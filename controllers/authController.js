@@ -23,20 +23,18 @@ const signToken = (id) => {
 
 // ANCHOR -- Create Send Token --
 // -- used by: signUp, login, resetPassword, updatePassword
-const createSendToken = (user, statusCode, res) => {
+const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
 
-  const cookieOptions = {
+  // define the jwt cookie
+  res.cookie('jwt', token, {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     //secure: true, // this means the cookie will only be sent via encrypted connection (https)
     httpOnly: true, // this means the cookie cannot be accessed or modifed in anyway by the browser (precents cross-side-scripting attacks)
-  };
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-
-  // define the jwt cookie
-  res.cookie('jwt', token, cookieOptions);
+    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+  });
 
   // set the password to undefined so it does not show up in the response to the client
   user.password = undefined;
@@ -61,7 +59,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   await new Email(newUser, url).sendWelcome();
 
   // 2) Create, Sign, and Send Token To Client
-  createSendToken(newUser, 201, res);
+  createSendToken(newUser, 201, req, res);
 });
 
 // ANCHOR -- Login User --
@@ -84,7 +82,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) if everything is ok, send token to client
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 
 // ANCHOR -- Logout User --
@@ -274,7 +272,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await user.save(); // we don't turn off validation here, because we WANT to validate the new password
 
   // 4) log the user in, send JWT to client
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 
 // ANCHOR -- Update Password --
@@ -295,5 +293,5 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Log user in, send JWT
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
