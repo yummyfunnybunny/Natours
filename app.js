@@ -15,6 +15,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const cors = require('cors');
 const AppError = require('./Utilities/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
@@ -38,6 +39,19 @@ app.set('views', path.join(__dirname, 'views'));
 // console.log(`NODE_ENV: ${process.env.NODE_ENV}`); // environment variables accessed via 'process.env'
 
 // SECTION == Global Middle-Ware ==
+
+// ANCHOR -- initialize CORS --
+// this will add some specific headers
+// access-Control-Allow-Origin *
+app.use(cors());
+// api.natours.com, natours.com
+// app.use(
+//   cors({
+//     origin: 'https://www.natours.com',
+//   })
+// );
+app.options('*', cors());
+// app.options('api/v1/tours/:id', cors());
 
 // ANCHOR -- serving static files --
 // app.use(express.static(`${__dirname}/public`));
