@@ -21,6 +21,7 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const bookingRouter = require('./routes/bookingRoutes');
+const bookingController = require('./controllers/bookingController');
 const viewRouter = require('./routes/viewsRoutes');
 
 // ANCHOR -- Initialize Express --
@@ -228,8 +229,18 @@ const limiter = rateLimit({
 // how intialize the limiter with all routes with '/api' in it
 app.use('/api', limiter); // app.use(route,limiter);
 
+// ANCHOR -- Stripe Webhook --
+// this route HAS to go above the body parsers, because strip can only accept this info in RAW form
+// so this has to go above the body parser before it converts this data to JSON.
+app.post(
+  '/webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  bookingController.webhookCheckout
+);
+
 // ANCHOR -- Initialize Parsers --
 // body parser, reading data from body into req.body
+app.use(express.raw());
 app.use(express.json({ limit: '10kb' })); // sets the limit of the body to 10kb
 app.use(express.urlencoded({ extended: true, limit: '10kb' })); // this allows us to parse data coming from a url-encoded HTML form
 app.use(cookieParser());

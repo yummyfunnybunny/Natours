@@ -10,7 +10,7 @@ const router = express.Router();
 // ANCHOR -- View Routes --
 router.get(
   '/',
-  bookingController.createBookingCheckout,
+  // bookingController.createBookingCheckout,
   authController.isLoggedIn,
   viewsController.getOverview
 );
