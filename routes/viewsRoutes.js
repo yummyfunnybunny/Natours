@@ -7,6 +7,8 @@ const bookingController = require('../controllers/bookingController');
 // ANCHOR -- Initialize View Router --
 const router = express.Router();
 
+router.use(viewsController.alerts);
+
 // ANCHOR -- View Routes --
 router.get(
   '/',
