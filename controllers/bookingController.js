@@ -51,18 +51,6 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
         },
       },
     ],
-    // line_items: [
-    //   {
-    //     name: `${tour.name} Tour`,
-    //     description: tour.summary,
-    //     images: [
-    //       `${req.protocol}://${req.get('host')}/img/tours/${tour.imageCover}`,
-    //     ],
-    //     amount: tour.price * 100,
-    //     currency: 'usd',
-    //     quantity: 1,
-    //   },
-    // ],
   });
   console.log('getCheckoutSession running...');
   // 4) Create session as response
@@ -84,6 +72,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
 //   // originalURL = `${req.protocol}://${req.get('host')}/?tour=${req.params.tourId}&user=${req.user.id}&price=${tour.price}`
 // });
 
+// ANCHOR -- Create Booking Checkout --
 const createBookingCheckout = async (session) => {
   console.log('Adding booking to database...');
   const tour = session.client_reference_id;
@@ -93,6 +82,7 @@ const createBookingCheckout = async (session) => {
   await Booking.create({ tour, user, price });
 };
 
+// ANCHOR -- Webhook Checkout --
 exports.webhookCheckout = (req, res, next) => {
   console.log('webhookCheckout being run...');
   // get the stripe signiature from the header
@@ -117,6 +107,7 @@ exports.webhookCheckout = (req, res, next) => {
   res.status(200).json({ received: true });
 };
 
+// ANCHOR -- Booking Factory --
 exports.createBooking = factory.createOne(Booking);
 exports.getBooking = factory.getOne(Booking);
 exports.getAllBookings = factory.getAll(Booking);
