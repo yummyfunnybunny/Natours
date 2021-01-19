@@ -85,6 +85,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
 // });
 
 const createBookingCheckout = async (session) => {
+  console.log('Adding booking to database...');
   const tour = session.client_reference_id;
   const user = (await User.findOne({ email: session.customer_email })).id;
   // const price = session.display_items[0].amount / 100;
@@ -93,6 +94,7 @@ const createBookingCheckout = async (session) => {
 };
 
 exports.webhookCheckout = (req, res, next) => {
+  console.log('webhookCheckout being run...');
   // get the stripe signiature from the header
   const signiature = req.headers['stripe-signiature'];
 
