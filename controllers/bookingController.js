@@ -96,7 +96,7 @@ const createBookingCheckout = async (session) => {
 exports.webhookCheckout = (req, res, next) => {
   console.log('webhookCheckout being run...');
   // get the stripe signiature from the header
-  const signature = req.headers['stripe-signiature'];
+  const signature = req.headers['stripe-signature'];
 
   let event;
   try {
