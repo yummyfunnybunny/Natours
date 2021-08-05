@@ -39,6 +39,7 @@ mongoose
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false,
+    useUnifiedTopology: true,
   })
   // we can now just use '.then' to log that the connection was successful
   .then(() => console.log('DB connection successful!'));
