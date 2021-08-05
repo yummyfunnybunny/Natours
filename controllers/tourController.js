@@ -1,12 +1,13 @@
 // ANCHOR -- Require Modules --
-const multer = require('multer');
-const sharp = require('sharp');
+const multer = require('multer'); // multi-part form data handler
+const sharp = require('sharp'); // image handler
 const Tour = require('../Models/tourModel');
 const catchAsync = require('../Utilities/catchAsync');
 const factory = require('./handlerFactory');
 const AppError = require('../Utilities/appError');
 
 // ANCHOR -- Setup Multer --
+// 1) initialize multer
 const multerStorage = multer.memoryStorage();
 
 // 2) Create the Multer Filter
@@ -137,7 +138,7 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
 
   // send success response
   res.status(200).json({
-    satus: 'success',
+    status: 'success',
     data: {
       stats,
     },

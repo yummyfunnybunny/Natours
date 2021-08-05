@@ -2,11 +2,12 @@
 const express = require('express');
 const viewsController = require('../controllers/viewsController');
 const authController = require('../controllers/authController');
-const bookingController = require('../controllers/bookingController');
+// const bookingController = require('../controllers/bookingController');
 
 // ANCHOR -- Initialize View Router --
 const router = express.Router();
 
+// ANCHOR -- use alerts --
 router.use(viewsController.alerts);
 
 // ANCHOR -- View Routes --

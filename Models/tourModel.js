@@ -163,6 +163,7 @@ tourSchema.virtual('reviews', {
 // Pre-Save Hook
 // the '.pre()' command will run before .save() and .create(), but NOT before .insertMany()
 tourSchema.pre('save', function (next) {
+  console.log(this);
   this.slug = slugify(this.name, { lower: true });
   next();
 });
@@ -189,7 +190,7 @@ tourSchema.pre('save', function (next) {
 // the .post() middle-waire has access to the 'doc' argument, which is the document that we just saved to the database
 // no longer have the 'this' keyword, but we have the finished document in 'doc'
 tourSchema.post('save', function (doc, next) {
-  //console.log(doc);
+  console.log(doc);
   next();
 });
 
@@ -208,11 +209,11 @@ tourSchema.pre(/^find/, function (next) {
 
 // ANCHOR -- Query Timer --
 // since this query middle-ware is the .post() method, it has access to the 'docs' (completed documents)
-// tourSchema.post(/^find/, function (docs, next) {
-//   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
-//   //console.log(docs);
-//   next();
-// });
+tourSchema.post(/^find/, function (docs, next) {
+  // console.log(docs);
+  // console.log(`Query took ${Date.now() - this.start} milliseconds!`);
+  next();
+});
 
 // ANCHOR -- Populate The Guides documents being referenced --
 // this is what populates the user data inside of the tour model (data modeling)
@@ -228,12 +229,12 @@ tourSchema.pre(/^find/, function (next) {
 
 // SECTION == Aggregation Middle-Ware ==
 
-// ANCHOR -- Match --
-// tourSchema.pre('aggregate', function (next) {
-//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-//   console.log(this.pipeline());
-//   next();
-// });
+// ANCHOR -- Filter Out Secret Tours --
+tourSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  // console.log(this.pipeline());
+  next();
+});
 
 // !SECTION
 

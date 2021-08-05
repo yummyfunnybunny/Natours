@@ -67,6 +67,7 @@ process.on('unhandledRejection', (err) => {
 
 // ANCHOR -- Handle SIGTERM Signal --
 // this will gracefully shutdown the server whenever heroku sends its scheduled SIGTERM signal to the application
+// It's a reset thing...
 process.on('SIGTERM', () => {
   console.log('SIGTERM RECEIVED. Shutting down gracefully! 💃');
   server.close(() => {

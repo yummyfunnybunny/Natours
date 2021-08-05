@@ -226,7 +226,7 @@ const limiter = rateLimit({
   windowMs: 60 * 60 * 1000, // window of time user can make the max number of requests
   message: 'Too many requests from this IPm please try again later.', // rate limit reached error message
 });
-// how intialize the limiter with all routes with '/api' in it
+// now initialize the limiter with all routes with '/api' in it
 app.use('/api', limiter); // app.use(route,limiter);
 
 // ANCHOR -- Stripe Webhook --

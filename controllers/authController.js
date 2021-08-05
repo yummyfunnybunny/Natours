@@ -186,6 +186,7 @@ exports.isLoggedIn = async (req, res, next) => {
 // ANCHOR -- Restrict access --
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
+    console.log(req);
     // roles is an array: ['lead-guide', 'admin']. role='user'
     if (!roles.includes(req.user.role)) {
       return next(

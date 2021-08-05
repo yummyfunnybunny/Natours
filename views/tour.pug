@@ -2,11 +2,6 @@
 extends base
 include _reviewCard
 
-block append head
-  script(src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js')
-  link(href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet')
-  
-
 //- SECTION == Mixins == 
 
 //- ANCHOR -- OverviewBox --
@@ -19,9 +14,15 @@ mixin overviewBox(description, text, icon)
 
 //- !SECTION
 
-//- ANCHOR -- Block -- 
-block content
+//- SECTION == Blocks ==
 
+//- ANCHOR -- Header Block --
+block append head
+  script(src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js')
+  link(href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet')
+
+//- ANCHOR -- Content Block --
+block content
   //- Hero Section
   section.section-header
     .header__hero
@@ -112,3 +113,5 @@ block content
           button.btn.btn--green.span-all-rows#book-tour(data-tour-id=`${tour.id}`) Book tour now!
         else
           a.btn.btn--green.span-all-rows(href='/login') Log in to book tour
+
+//- !SECTION

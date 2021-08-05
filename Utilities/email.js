@@ -69,6 +69,7 @@ module.exports = class Email {
     await this.send('welcome', 'Welcome to the Natours Family!');
   }
 
+  // ANCHOR -- Password Reset Email --
   async sendPasswordReset() {
     await this.send(
       'passwordReset',
