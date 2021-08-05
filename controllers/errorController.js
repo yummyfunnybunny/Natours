@@ -13,8 +13,6 @@ const handleCastErrorDB = (err) => {
 // ANCHOR -- Duplicate Fields --
 // function handler for duplicate document name
 const handleDuplicateFieldsDB = (err) => {
-  // console.log(err.errmsg);
-  // console.log(Object.values(err.keyValue));
   // const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
   const value = Object.values(err.keyValue);
   const message = `Duplicate field value ${value}. Please use another value`;
@@ -83,6 +81,7 @@ const sendErrorProd = (err, req, res) => {
     });
   }
   // B) Rendered Website
+  // Operational error that we trust, send message to client
   if (err.isOperational) {
     return res.status(err.statusCode).render('error', {
       title: 'Something went wrong!',

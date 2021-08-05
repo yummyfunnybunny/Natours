@@ -224,7 +224,7 @@ if (process.env.NODE_ENV !== 'production') {
 const limiter = rateLimit({
   max: 100, // maximum number of requests user can make
   windowMs: 60 * 60 * 1000, // window of time user can make the max number of requests
-  message: 'Too many requests from this IPm please try again later.', // rate limit reached error message
+  message: 'Too many requests from this IP. Please try again later.', // rate limit reached error message
 });
 // now initialize the limiter with all routes with '/api' in it
 app.use('/api', limiter); // app.use(route,limiter);

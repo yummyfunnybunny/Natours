@@ -58,13 +58,7 @@ exports.getTour = catchAsync(async (req, res, next) => {
 });
 
 exports.getLoginForm = (req, res) => {
-  res
-    .status(200)
-    // .set(
-    //   'Content-Security-Policy',
-    //   "connect-src 'self' https://cdnjs.cloudflare.com"
-    // )
-    .render('login', {
+  res.status(200).render('login', {
       // 'login' is the name of the template we are going to load
       title: 'Log into your account',
     });
