@@ -1,10 +1,81 @@
 // ANCHOR -- Require Modules --
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('../Models/tourModel');
 const catchAsync = require('../Utilities/catchAsync');
 const factory = require('./handlerFactory');
-// const AppError = require('../Utilities/appError');
+const AppError = require('../Utilities/appError');
+
+// ANCHOR -- Setup Multer --
+const multerStorage = multer.memoryStorage();
+
+// 2) Create the Multer Filter
+const multerFilter = (req, file, callback) => {
+  if (file.mimetype.startsWith('image')) {
+    callback(null, true);
+  } else {
+    callback(
+      new AppError('Not an image! Please upload an image file only.', 400),
+      false
+    );
+  }
+};
+
+// 3) Initialize multer using the 'multerStorage' object and the 'multerFilter' function that we intitialized above
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
 
 // SECTION == Middleware ==
+
+// ANCHOR -- Upload Tour Images --
+exports.uploadTourImages = upload.fields([
+  {
+    name: 'imageCover',
+    maxCount: 1,
+  },
+  {
+    name: 'images',
+    maxCount: 3,
+  },
+]);
+// use the below syntax if you are uploading multiple files but to only one fiels
+// in the above example, if we only had the field named 'images', than we could set it up like this:
+// upload.array('images', 3);
+
+// ANCHOR -- Resize Tour Images --
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  // skip to next middleware if there is no imageCover or images
+  if (!req.files.imageCover || !req.files.images) return next();
+
+  // 1) Process Cover Image
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${req.body.imageCover}`);
+
+  // 2) Process regular Images
+  req.body.images = [];
+
+  await Promise.all(
+    req.files.images.map(async (file, i) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`);
+
+      req.body.images.push(filename);
+    })
+  );
+  next();
+});
 
 // ANCHOR -- Alias Top Tours --
 // manupulates the get request to create a sort of default query
@@ -96,8 +167,8 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     {
       $group: {
         _id: { $month: '$startDates' }, // group documents together by month
-        numTourStarts: { $sum: 1 }, // sums up the total number of tours starting in that month
-        tours: { $push: '$name' }, // creates a new array and uses the 'push' method to add to it
+        TotalToursThisMonth: { $sum: 1 }, // sums up the total number of tours starting in that month
+        toursList: { $push: '$name' }, // creates a new array and uses the 'push' method to add to it
       },
     },
     {
@@ -121,6 +192,105 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     satus: 'success',
     data: {
       plan,
+    },
+  });
+});
+
+// ANCHOR -- Get Tours Within --
+// url example: // /tours/tours-within/400/center/34.111745,-118.113491/unit/mi
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  // destructure the url parameters into their own constants
+  const { distance, latlng, unit } = req.params;
+
+  // destructure the latlng constant into an array of separated units
+  const [lat, lng] = latlng.split(',');
+
+  // define the radius by converting the distance provided into the mongoDB accepted unit 'radian'
+  // Earth Radius in miles: 3963.2
+  // Earth radius in kilometers: 6378.1
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+  // If lat/lng was not provided in correct format, throw an error
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide  latitude and longitude in the format lat,lng.',
+        400
+      )
+    );
+  }
+
+  // check the variables if you want to...
+  // console.log(distance, lat, lng, unit);
+
+  // filter the tours based on the startLocation being within the desired distance
+  // '$geoWithin' is an operator like '$lt/$gte', but for geospatial data
+  const tours = await Tour.find({
+    startLocation: {
+      $geoWithin: {
+        // notice that longitude comes first in geoJSON, NOT latitude
+        $centerSphere: [[lng, lat], radius],
+      },
+    },
+  });
+
+  // Send success response
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  // destructure the url parameters into their own constants
+  const { latlng, unit } = req.params;
+
+  // destructure the latlng constant into an array of separated units
+  const [lat, lng] = latlng.split(',');
+
+  // set the multipler to convert meters (default) to either miles or kilometers
+  const multipler = unit === 'mi' ? 0.000621371 : 0.001;
+
+  // If lat/lng was not provided in correct format, throw an error
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide  latitude and longitude in the format lat,lng.',
+        400
+      )
+    );
+  }
+
+  const distances = await Tour.aggregate([
+    // only one single stage for geospatial aggregation:
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          // we have to multiply each const by 1 to turn them from a string to a number
+          // req.params is a string
+          coordinates: [lng * 1, lat * 1],
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multipler,
+      },
+    },
+    {
+      $project: {
+        distance: 1,
+        name: 1,
+      },
+    },
+  ]);
+
+  // Send success response
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
     },
   });
 });

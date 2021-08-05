@@ -1,7 +1,7 @@
 // ANCHOR -- Require Modiles --
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const User = require('./userModel');
+// const User = require('./userModel');
 // const validator = require('validator');
 
 // ANCHOR -- Create Tour Schema --
@@ -40,6 +40,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be greater than 1.0'],
       max: [5, 'Rating must be less than or equal to 5.0'],
+      set: (val) => Math.round(val * 10) / 10, // this will round to the nearest 10th
     },
     ratingsQuantity: {
       type: Number,
@@ -90,7 +91,10 @@ const tourSchema = new mongoose.Schema(
         default: 'Point',
         enum: ['Point'],
       },
-      coordinates: [Number],
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+      },
       address: String,
       description: String,
     },
@@ -122,6 +126,15 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true }, // this tells the schema to include virtual properties when outputted to objects
   }
 );
+
+// SECTION == Create Indexes ==
+
+// tourSchema.index({ price: 1 });
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' }); // geospatial data needs to be defined as either '2dsphere' or '2d'
+
+// !SECTION
 
 // SECTION == Virtual Properties ==
 // virtual properties are created each time a request is made
@@ -155,6 +168,7 @@ tourSchema.pre('save', function (next) {
 });
 
 // ANCHOR -- Embed User Documents inside Tour Documents --
+// this is just an example of how we would embed the user documents inside the tour documents if we wanted to
 // tourSchema.pre('save', async function (next) {
 //   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
 //   this.guides = await Promise.all(guidesPromises);
@@ -194,11 +208,11 @@ tourSchema.pre(/^find/, function (next) {
 
 // ANCHOR -- Query Timer --
 // since this query middle-ware is the .post() method, it has access to the 'docs' (completed documents)
-tourSchema.post(/^find/, function (docs, next) {
-  console.log(`Query took ${Date.now() - this.start} milliseconds!`);
-  //console.log(docs);
-  next();
-});
+// tourSchema.post(/^find/, function (docs, next) {
+//   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
+//   //console.log(docs);
+//   next();
+// });
 
 // ANCHOR -- Populate The Guides documents being referenced --
 // this is what populates the user data inside of the tour model (data modeling)
@@ -215,11 +229,11 @@ tourSchema.pre(/^find/, function (next) {
 // SECTION == Aggregation Middle-Ware ==
 
 // ANCHOR -- Match --
-tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline());
+//   next();
+// });
 
 // !SECTION
 

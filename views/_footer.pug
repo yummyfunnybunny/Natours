@@ -1,0 +1,14 @@
+footer.footer
+  .footer__logo
+    img(src='/img/logo-green.png' alt='Natour logo')
+  ul.footer__nav
+    //- NOTE normally the 'a' element would be indented underneath its parent 'li', but with pug, you can use
+    //- the below syntax to join them on the same line using ':'. its a list-only thing as far as i know
+    li: a(href='#') About Us
+    li: a(href='#') Download Apps
+    li: a(href='#') Become A Guide
+    li: a(href='#') Careers
+    li: a(href='#') Contact
+  
+  //- Copyright text
+  p.footer__copyright &copy; by Jake Nichols.

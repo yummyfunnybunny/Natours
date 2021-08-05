@@ -5,9 +5,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../Models/userModel');
 const catchAsync = require('../Utilities/catchAsync');
 const AppError = require('../Utilities/appError');
-const sendEmail = require('../Utilities/email');
-
-// SECTION == Functions ==
+const Email = require('../Utilities/email');
 
 // ANCHOR -- Sign Token --
 // -- used by: createSendToken
@@ -25,20 +23,18 @@ const signToken = (id) => {
 
 // ANCHOR -- Create Send Token --
 // -- used by: signUp, login, resetPassword, updatePassword
-const createSendToken = (user, statusCode, res) => {
+const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
 
-  const cookieOptions = {
+  // define the jwt cookie
+  res.cookie('jwt', token, {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     //secure: true, // this means the cookie will only be sent via encrypted connection (https)
     httpOnly: true, // this means the cookie cannot be accessed or modifed in anyway by the browser (precents cross-side-scripting attacks)
-  };
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-
-  // define the jwt cookie
-  res.cookie('jwt', token, cookieOptions);
+    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+  });
 
   // set the password to undefined so it does not show up in the response to the client
   user.password = undefined;
@@ -54,20 +50,16 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 // ANCHOR -- Signup User --
-
 exports.signup = catchAsync(async (req, res, next) => {
-  // 1) save all of the necessary user inputs into a model object 'newUser'
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    passwordChangedAt: req.body.passwordChangedAt,
-    role: req.body.role,
-  });
+  // 1) save all of the info from req.body into a model object 'newUser'
+  const newUser = await User.create(req.body);
+
+  // create the url, and send the welcome email to the newly signed-up user
+  const url = `${req.protocol}://${req.get('host')}/me`;
+  await new Email(newUser, url).sendWelcome();
 
   // 2) Create, Sign, and Send Token To Client
-  createSendToken(newUser, 201, res);
+  createSendToken(newUser, 201, req, res);
 });
 
 // ANCHOR -- Login User --
@@ -80,7 +72,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
   // 2) check if user exists and if password is correct
   const user = await User.findOne({ email: email }).select('password');
-  console.log(user);
+  // console.log(user);
   // if user not not exist, or if the passwords don't match
   // we put the password check inside of this if/else statement because otherwise we'd get
   // an error if the user did not exist, due to the password check requiring a valid user
@@ -90,8 +82,20 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) if everything is ok, send token to client
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
+
+// ANCHOR -- Logout User --
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now()),
+    // expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({
+    status: 'success',
+  });
+};
 
 // ANCHOR -- Protect --
 exports.protect = catchAsync(async (req, res, next) => {
@@ -102,6 +106,10 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+
+    // check for a jwt in the cookies
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
 
   // throw error if there is no token
@@ -133,12 +141,47 @@ exports.protect = catchAsync(async (req, res, next) => {
       )
     );
   }
-  console.log(req.user);
+  // console.log(req.user);
   // 5) - grant access to protected route -
   req.user = freshUser; // we do this line because the req.user is what gets passed from middleware to middleware
-  console.log(req.user);
+  res.locals.user = freshUser;
+  // console.log(req.user);
   next();
 });
+
+// ANCHOR -- Is Logged In --
+// only for rendered pages, no errors!
+exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      // 1) verify token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+      // console.log(decoded); // output: { _id, iat, exp } - id of document, issued at, expires at
+
+      // 2) - check if user still exists -
+      const freshUser = await User.findById(decoded._id);
+      if (!freshUser) {
+        return next();
+      }
+
+      // 3) - Check if user changed password after the token was issued -
+      if (freshUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      // 4) - there is a logged in user
+      res.locals.user = freshUser; // all pug templates have access to 'res.locals'
+      return next();
+    } catch (err) {
+      return next();
+    }
+  }
+  // there is no logged in user, call 'next'
+  next();
+};
 
 // ANCHOR -- Restrict access --
 exports.restrictTo = (...roles) => {
@@ -161,30 +204,21 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     return next(new AppError('There is no user with that Email address.', 404)); // 404 = not found
   }
 
-  // 2) Generate a random reset tokens
+  // 2) Generate a random reset token and save it to the current user
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
   // 3) Send Email with Token To User's Email
-
-  // build the URL with the resetToken at the end; this will go in the email
-  // req.protocol = http
-  // req.get('host') = 127.0.0.1:3000
-  const resetURL = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/users/resetPassword/${resetToken}`;
-
-  // create the message to place in the Email
-  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\n
-  If you didn't forget your password, please ignore this email!`;
-
-  // attempt to officially send the email
   try {
-    await sendEmail({
-      email: user.email,
-      subject: `Your password reset token (valid for 10 minutes)`,
-      message: message,
-    });
+    // build the URL with the resetToken at the end; this will go in the email
+    // req.protocol = http
+    // req.get('host') = '127.0.0.1:3000' or 'localhost:3000'
+    const resetURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/resetPassword/${resetToken}`;
+
+    // attempt to officially send the email
+    await new Email(user, resetURL).sendPasswordReset();
 
     // send success response to the client
     res.status(200).json({
@@ -238,13 +272,13 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await user.save(); // we don't turn off validation here, because we WANT to validate the new password
 
   // 4) log the user in, send JWT to client
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 
 // ANCHOR -- Update Password --
 exports.updatePassword = catchAsync(async (req, res, next) => {
   // 1) Get the user from COLLECTION
-  console.log(req.body);
+  // console.log(req.body);
   const user = await User.findOne(req.user._id).select('+password');
 
   // 2) Check if POSTed password is correct
@@ -259,7 +293,5 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Log user in, send JWT
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
-
-// !SECTION

@@ -86,9 +86,10 @@ exports.getOne = (Model, popOptions) =>
     });
   });
 
+// ANCHOR -- Get All --
 exports.getAll = (Model) =>
   catchAsync(async (req, res, next) => {
-    // To allow for nexted GET reviews on tour
+    // To allow for nested GET reviews on tour
     let filter = {};
     if (req.params.tourId) filter = { tour: req.params.tourId };
 
@@ -101,6 +102,11 @@ exports.getAll = (Model) =>
 
     // await the finalquery to the new constant 'document'
     const document = await features.query;
+
+    // use this code instead of the code directly above to see 'explained' query results
+    // const document = await features.query.setOptions({
+    //   explain: 'executionStats',
+    // });
 
     // Send Response
     res.status(200).json({

@@ -4,17 +4,19 @@ const reviewController = require('../controllers/reviewController');
 const authController = require('../controllers/authController');
 
 // ANCHOR -- Initialize Review Route --
-// set 'mergeParams: true' to activate re-routing nested routees
+// set 'mergeParams: true' to activate re-routing nested routes
 const router = express.Router({ mergeParams: true });
 
 // SECTION == Routes ==
+
+// ANCHOR -- Protect Routes --
+router.use(authController.protect);
 
 // ANCHOR -- Get All Reviews --
 router
   .route('/')
   .get(reviewController.getAllReviews)
   .post(
-    authController.protect,
     authController.restrictTo('user'),
     reviewController.setTourUserIds,
     reviewController.createReview
@@ -24,13 +26,14 @@ router
 router
   .route('/:id')
   .get(reviewController.getReview)
-  .patch(reviewController.updateReview)
-  .delete(reviewController.deleteReview);
-// router
-//   .route('/:id')
-//   .get(reviewController.getReview)
-//   .patch(reviewController.updateReview)
-//   .delete(reviewController.deleteReview);
+  .patch(
+    authController.restrictTo('user', 'admin'),
+    reviewController.updateReview
+  )
+  .delete(
+    authController.restrictTo('user', 'admin'),
+    reviewController.deleteReview
+  );
 
 // !SECTION
 

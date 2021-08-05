@@ -19,7 +19,10 @@ const userSchema = new mongoose.Schema(
       lowercase: true, // this validator will automatically convert the email string to lowercase
       validate: [validator.isEmail, 'User must provide a valid Email'],
     },
-    photo: String,
+    photo: {
+      type: String,
+      default: 'default.jpg',
+    },
     role: {
       type: String,
       enum: ['user', 'guide', 'lead-guide', 'admin'],
@@ -57,6 +60,9 @@ const userSchema = new mongoose.Schema(
     toObject: { virtuals: true }, // this tells the schema to include virtual properties when outputted to objects
   }
 );
+
+// SECTION == Create Indexes ==
+// !SECTION
 
 // SECTION == Virtual Properties ==
 // !SECTION

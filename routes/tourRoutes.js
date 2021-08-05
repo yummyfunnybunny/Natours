@@ -34,19 +34,45 @@ router
 router.route('/tour-stats').get(tourController.getTourStats);
 
 // ANCHOR -- Get Monthly Plan Route --
-router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
+router
+  .route('/monthly-plan/:year')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide', 'guide'),
+    tourController.getMonthlyPlan
+  );
+
+// ANCHOR -- Tours Within --
+//                                  {distance}   { latitude, longitude }{ unit of measurement }
+// url example: // /tours/tours-within/400/center/34.111745,-118.113491/unit/mi
+router
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
+  .get(tourController.getToursWithin);
+
+// ANCHOR -- Get Distances --
+router.route('/distances/:latlng/unit/:unit').get(tourController.getDistances);
 
 // ANCHOR -- Get All Tours Route --
 router
   .route('/')
-  .get(authController.protect, tourController.getAllTours)
-  .post(tourController.createTour);
+  .get(tourController.getAllTours)
+  .post(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.createTour
+  );
 
 // ANCHOR -- Get Tour By ID Route --
 router
   .route('/:id')
   .get(tourController.getTour)
-  .patch(tourController.updateTour)
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.uploadTourImages,
+    tourController.resizeTourImages,
+    tourController.updateTour
+  )
   .delete(
     authController.protect,
     authController.restrictTo('admin', 'lead-guide'),

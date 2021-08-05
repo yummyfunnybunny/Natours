@@ -1,5 +1,6 @@
 // ANCHOR -- Require Modules --
 const express = require('express');
+
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
 
@@ -9,22 +10,29 @@ const router = express.Router();
 // ANCHOR -- Routes --
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
+router.get('/logout', authController.logout);
 
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
+
+// ANCHOR -- Protect Routes --
+// this acts as middleware that will run before any of the below routes
+// all routes below this protect middleware is protected
+router.use(authController.protect);
+
+router.patch('/updateMyPassword', authController.updatePassword);
+router.get('/Me', userController.getMe, userController.getUser);
 router.patch(
-  '/updatePassword',
-  authController.protect,
-  authController.updatePassword
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.resizeUserPhoto,
+  userController.updateMe
 );
-router.get(
-  '/Me',
-  authController.protect,
-  userController.getMe,
-  userController.getUser
-);
-router.patch('/updateMe', authController.protect, userController.updateMe);
-router.delete('/deleteMe', authController.protect, userController.deleteMe);
+router.delete('/deleteMe', userController.deleteMe);
+
+// ANCHOR -- Restrict Routes --
+// this middleware will restrict all the below routes to admin usage only
+router.use(authController.restrictTo('admin'));
 
 router
   .route('/')
