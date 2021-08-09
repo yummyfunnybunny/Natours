@@ -163,7 +163,7 @@ tourSchema.virtual('reviews', {
 // Pre-Save Hook
 // the '.pre()' command will run before .save() and .create(), but NOT before .insertMany()
 tourSchema.pre('save', function (next) {
-  console.log(this);
+  // console.log(this);
   this.slug = slugify(this.name, { lower: true });
   next();
 });

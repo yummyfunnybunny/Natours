@@ -53,6 +53,7 @@ const createSendToken = (user, statusCode, req, res) => {
 exports.signup = catchAsync(async (req, res, next) => {
   // 1) save all of the info from req.body into a model object 'newUser'
   const newUser = await User.create(req.body);
+  console.log('signup 3');
 
   // create the url, and send the welcome email to the newly signed-up user
   const url = `${req.protocol}://${req.get('host')}/me`;

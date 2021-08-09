@@ -59,9 +59,15 @@ exports.getTour = catchAsync(async (req, res, next) => {
 
 exports.getLoginForm = (req, res) => {
   res.status(200).render('login', {
-      // 'login' is the name of the template we are going to load
-      title: 'Log into your account',
-    });
+    // 'login' is the name of the template we are going to load
+    title: 'Log into your account',
+  });
+};
+
+exports.getSignupForm = (req, res) => {
+  res.status(200).render('signup', {
+    title: 'Signup to Natours',
+  });
 };
 
 exports.getAccount = (req, res) => {

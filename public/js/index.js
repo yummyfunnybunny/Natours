@@ -7,11 +7,14 @@ import { login, logout } from './login';
 import { updateSettings } from './updateSettings';
 import { bookTour } from './stripe';
 import { showAlert } from './alerts';
+// import { signup } from '../../controllers/authController';
+import { signup } from './signup';
 
 // ANCHOR -- Set DOM Elements --
 // saves all of the elements that we will need to interact with
 const mapBox = document.getElementById('map');
 const loginForm = document.querySelector('.form--login');
+const signupForm = document.querySelector('.form--signup');
 const logOutBtn = document.querySelector('.nav__el--logout');
 const userDataForm = document.querySelector('.form-user-data');
 const userPasswordForm = document.querySelector('.form-user-password');
@@ -25,11 +28,31 @@ if (mapBox) {
 }
 
 if (loginForm) {
+  console.log('signup form submitted');
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault(); // prevents the form from loading any other page
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     login(email, password);
+  });
+}
+
+if (signupForm) {
+  console.log('signup form submitted');
+  signupForm.addEventListener('submit', (e) => {
+    console.log('yippieee');
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const passwordConfirm = document.getElementById('passwordConfirm').value;
+
+    if (password !== passwordConfirm) {
+      showAlert('error', 'Passwords do not match! Please retry...');
+    } else {
+      console.log('signup 1');
+      signup(name, email, password, passwordConfirm);
+    }
   });
 }
 

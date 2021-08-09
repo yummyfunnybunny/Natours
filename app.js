@@ -329,7 +329,6 @@ could have added more business logic to the project:
   - 2-factor authentication (text message on phone with code)
 
 front-end additions:
- - create a signup form (very similar to login form)
  - on the tour detail page, if a user has taken a tour, allow them to add a review directly on the website with a form
  - hide the entire booking section on the tour detail page if the current user has already booked the tour
  - also prevent duplicate bookings on the model (very similar to what we did with stopping duplicate reviews)

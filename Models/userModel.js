@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+// const AppError = require('../Utilities/appError');
 
 // ANCHOR -- Create The User Schema --
 const userSchema = new mongoose.Schema(
@@ -68,6 +69,16 @@ const userSchema = new mongoose.Schema(
 // !SECTION
 
 // SECTION == Document Middle-Ware ==
+
+// ANCHOR -- Check that password = passwordConfirm --
+// userSchema.pre('save', function (next) {
+//   console.log(this);
+//   if (this.password !== this.passwordConfirm) {
+//     return new AppError('Passwords do not match! Please retry...', 406);
+//     // next(new AppError(`Passwords do not match! Please retry...`, 406));
+//   }
+//   next();
+// });
 
 // ANCHOR --  Password Hashing --
 userSchema.pre('save', async function (next) {
